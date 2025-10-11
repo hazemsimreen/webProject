@@ -1,0 +1,289 @@
+:root {
+    --mainColor: #e69c00;
+}
+
+.btn {
+    background-color: var(--mainColor);
+}
+
+.navbar-brand {
+    font-family: 'Dancing Script';
+    font-weight: bold;
+    font-size: 32px;
+}
+.navbar-nav .active{
+    color: #ffbe33 !important;
+    }
+.navbar {
+    background-image: url('../image/hero-bg.jpg') !important;
+    background-size: cover;
+   
+}
+
+.defenition p {
+    font-size: 14px;
+    color: #fff;
+}
+
+.slider h1 {
+    padding: 180px 0 10px 0;
+    font-size: 3.5rem;
+    font-weight: bold;
+    font-family: 'Dancing Script';
+    color: #fff;
+}
+
+.slider .carousel-item {
+    height: 770px;
+    background-image: url('../image/hero-bg.jpg');
+    background-size: cover;
+    background-position: center;
+
+}
+
+.slider .carousel-indicators {
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.slider .carousel-indicators button {
+    background-color: #ffffff;
+    width: 12px;
+    margin-bottom: 20px;
+    height: 12px;
+    border-radius: 100%;
+    opacity: 1;
+}
+
+.slider .carousel-indicators button.active {
+    width: 20px;
+    height: 20px;
+    background-color: #ffbe33;
+}
+.mainHeader{
+    font-family: 'Dancing Script';
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+
+}
+.footer_section{
+text-align: center;
+}
+.footer_section .icons{
+    display: flex;
+    justify-content: center;
+}
+.footer_section .icons i{
+
+display: flex;
+justify-content: center;
+align-items: center;
+color: #222831;
+width: 30px;
+height: 30px;
+background-color: #ffffff;
+border-radius: 100%;
+margin: 0 2.5px;
+font-size: 18px;
+}
+.discount .img-b{
+   width: 168px;
+   height: 168px;
+    object-fit: cover; 
+    border-radius: 100%;
+    border: 5px solid #ffbe33;
+    overflow: hidden;
+
+}
+.offer{
+    font-family: 'Dancing Script';
+    font-size: 18px;
+    font-weight: bold;
+}
+.snumber{
+    font-size: 45px;
+}
+.card-title{
+    font-family: 'Dancing Script';
+    font-size: 26px;
+    font-weight: bold;
+    
+}
+.card .row {
+    display: flex;
+    align-items: center;
+}
+.halfWay img{
+    width: 100%;
+max-width: 480px;
+}
+.halfWay .row{
+    display: flex;
+    align-items: center;
+}
+.halfWay .card-title {
+    font-size: 40px;
+}
+.menuHeader{
+    display: flex;
+    justify-content: center;
+    font-family: 'Dancing Script';
+    font-size: 40px;
+    font-weight: bold;
+}
+.categories{
+display: flex;
+justify-content: center;
+list-style-type: none;
+margin: 45px 0 20px 0;
+}
+.category {
+    font-size: 18px;
+}
+.cardImage {
+    height: 215px; 
+    border-radius: 15px 15px 0 45px; 
+    background: #f1f2f3;
+    display: flex;
+justify-content: center;
+margin: -1px;
+padding: 30px;
+}
+
+.menu .card {
+    border-radius: 15px;
+    
+}
+.card-body{
+    border-radius: 0 0 15px 15px; 
+}
+
+.card-img-top {
+    max-width: 100%;  
+    max-height: 145px; 
+    object-fit: contain; 
+
+}
+.cardFooter{
+    display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.cardIcon{
+    width: 40px;
+height: 40px;
+border-radius: 100%;
+background: #ffbe33;
+display: flex;
+justify-content: center;
+align-items: center;
+
+}
+.menu .card-title{
+    font-family:  sans-serif;
+    font-size: 24px;
+}
+.menu .card-text{
+    font-size: 18;
+}
+.category {
+    cursor: pointer;
+}
+
+ .category.active {
+    background-color: black;
+    color : white;
+    border-radius: 20px;
+    
+}
+.viewMore-btn{
+    display: flex;
+    justify-content: center;
+   
+}
+.viewMore-btn button{
+    padding: 14px 60px 14px 60px;
+}
+
+.clints .carousel-indicators {
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.clints .carousel-indicators button {
+    background-color: #ffbe33;
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    align-items: center;
+    justify-content: center;
+
+}
+.clints h6{
+    font-size: 18px;;
+}
+
+.clints p{
+font-size: 14px;
+}
+.clintImage {
+    width: 124px; 
+    height: 124px; 
+    margin-top: 10px; 
+}
+
+.clintImage img {
+    width: 100%; 
+    height: 100%; 
+    border-radius: 50%; 
+    border: 3px solid #ffbe33; 
+    object-fit: cover; 
+
+}
+.book .mainHeader2{
+    font-family: 'Dancing Script';
+    font-size: 40px;
+    font-weight: bold;  
+}
+.mapouter {
+    position: relative;
+    text-align: right;
+    width: 600px;
+    height: 400px;
+    transform: scale(1.1);
+}
+.cardImage img:hover {
+    transform: scale(1.1);
+   
+}
+i:hover {
+    color: #ffbe33 !important;
+}
+li:hover {
+    color: #ffbe33 !important;
+}
+a:hover {
+    color: #ffbe33 !important;
+}
+.img-b :hover {
+    transform: scale(1.1);
+   
+   
+}
+
+.gmap_canvas {
+    overflow: hidden;
+    background: none !important;
+    width: 600px;
+    height: 400px;
+}
+
+.gmap_iframe {
+    width: 600px !important;
+    height: 400px !important;
+}
+.navbar-nav .active{
+color: #ffbe33;
+}
