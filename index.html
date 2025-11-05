@@ -43,7 +43,12 @@
                 </ul>
 
                 <div>
+                    <a href="login.html" >
+
                     <i class="fa-solid fa-user text-white mx-1 "></i>
+                    </a>
+
+
                     <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
                     <i class="fa-solid fa-magnifying-glass text-white mx-1"></i>
                     <button class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3" type="submit">Order
@@ -395,6 +400,7 @@
     <section class="book">
         <div class="container">
             <h2 class="mainHeader2 py-4">Book A Table</h2>
+
             <div class="row justify-content-center">
                 <div class="col-md-6">
                     <form>
@@ -407,8 +413,8 @@
                             <label for="floatingPassword">Phone Number</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="floatingPassword" placeholder="Your Email">
-                            <label for="floatingPassword">Your Email</label>
+                            <input type="email" class="form-control" id="floatingEmail" placeholder="Your Email">
+                            <label for="floatingEmail">Your Email</label>
                         </div>
                         <select class="form-select form-select-lg mb-3" aria-label="Large select example">
                             <option selected> How many persons? </option>
@@ -445,9 +451,10 @@
                 <div class="carousel-inner">
 
                     <div class="carousel-item active">
-                        <div class="row justify-content-center">
+                        <div id="reviewsRow" class="row justify-content-center">
 
-                            <div class="col-md-5 mb-3">
+
+                        <div class="col-md-5 mb-3">
                                 <div class="card bg-dark text-white">
                                     <div class="card-body ">
                                         <p class="card-text"> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
@@ -479,39 +486,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="carousel-item">
-                        <div class="row justify-content-center">
-                            <div class="col-md-5 mb-3">
-                                <div class="card bg-dark text-white">
-                                    <div class="card-body">
-                                        <p class="card-text"> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                                            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-                                            ad minim veniam .</p>
-                                        <h6>Moana Michell</h6>
-                                        <p class="card-text">Great experience!</p>
-                                    </div>
-                                </div>
-                                <div class="clintImage mt-3">
-                                    <img src="./assets/image/client2.jpg" alt="Moana Michell">
-                                </div>
-                            </div>
 
-                            <div class="col-md-5 mb-3">
-                                <div class="card bg-dark text-white">
-                                    <div class="card-body ">
-                                        <p class="card-text"> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                                            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-                                            ad minim veniam </p>
-                                        <h6>Mike Hamell</h6>
-                                        <p class="card-text">Great experience!</p>
-                                    </div>
-                                </div>
-                                <div class="clintImage mt-3">
-                                    <img src="./assets/image/client1.jpg" alt="Mike Hamell">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
 
 
@@ -519,7 +495,21 @@
                     <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0"
                         class="active" aria-current="true"><i class="fa-solid fa-angle-right"></i></button>
                     <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"></button>
+
+
                 </div>
+                <button  id="openBtn" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3" type="submit">
+                    Add your Review </button>
+
+                <div  id="showingText">
+
+
+                    <textarea  id="messageBox"placeholder="Write Your Honest Thoughts About us "></textarea>
+
+                    <button id="doneReview" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3" type="submit">
+                        done </button>
+
+            </div>
             </div>
         </div>
     </section>
@@ -574,6 +564,8 @@
                 </div>
 
             </div>
+
+        </div>
     </footer>
 
     <script src="./assets/js/main.js"> </script>
