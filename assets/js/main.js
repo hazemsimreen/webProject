@@ -3,26 +3,80 @@ console.log("🚀 main.js loaded!");
 document.addEventListener("DOMContentLoaded", function () {
   console.log("✅ DOM Ready!");
 
+  // ============= LOAD MEALS FROM LOCALSTORAGE =============
+  function loadMealsFromStorage() {
+    const savedMeals = localStorage.getItem("restaurantMeals");
+    if (savedMeals) {
+      const meals = JSON.parse(savedMeals);
+      renderMeals(meals);
+      console.log(`📦 Loaded ${meals.length} meals from localStorage`);
+    }
+  }
+
+  // ============= RENDER MEALS =============
+  function renderMeals(meals) {
+    const menuContainer = document.querySelector(".menuContnts .row");
+    if (!menuContainer) return;
+
+    // Clear existing meals
+    menuContainer.innerHTML = "";
+
+    // Add all meals from localStorage
+    meals.forEach((meal) => {
+      const mealCard = `
+        <div class="col menu-item" data-category="${meal.category}" data-id="${meal.id}">
+          <div class="card h-100 bg-dark">
+            <div class="cardImage">
+              <img src="${meal.image}" class="card-img-top" alt="${meal.name}">
+            </div>
+            <div class="card-body bg-dark text-white py-3">
+              <h5 class="card-title py-2">${meal.name}</h5>
+              <p class="card-text">${meal.description}</p>
+              <div class="cardFooter py-3">
+                <h6>$${meal.price}</h6>
+                <button type="button" class="cardIcon add-to-cart-btn">
+                  <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      menuContainer.insertAdjacentHTML("beforeend", mealCard);
+    });
+    
+    // No need to re-attach listeners with Event Delegation!
+    attachFilterListeners();
+  }
+
   // ============= MENU FILTER =============
-  const categoryButtons = document.querySelectorAll(".category");
-  const menuItems = document.querySelectorAll(".menu-item");
+  function attachFilterListeners() {
+    const categoryButtons = document.querySelectorAll(".category");
 
-  categoryButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      categoryButtons.forEach((btn) => btn.classList.remove("active"));
-      this.classList.add("active");
+    categoryButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        categoryButtons.forEach((btn) => btn.classList.remove("active"));
+        this.classList.add("active");
 
-      const filter = this.getAttribute("data-filter");
+        const filter = this.getAttribute("data-filter");
+        const menuItems = document.querySelectorAll(".menu-item");
 
-      menuItems.forEach((item) => {
-        if (filter === "all" || item.getAttribute("data-category") === filter) {
-          item.style.display = "block";
-        } else {
-          item.style.display = "none";
-        }
+        menuItems.forEach((item) => {
+          if (
+            filter === "all" ||
+            item.getAttribute("data-category") === filter
+          ) {
+            item.style.display = "block";
+          } else {
+            item.style.display = "none";
+          }
+        });
       });
     });
-  });
+  }
+
+  // Initial filter setup
+  attachFilterListeners();
 
   // ============= REVIEWS SYSTEM =============
   const openBtn = document.getElementById("openBtn");
@@ -85,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function addToCart(itemData) {
     console.log("➕ Adding to cart:", itemData);
 
-    const existingItem = cart.find((item) => item.id === itemData.id);
+    const existingItem = cart.find((item) => item.id == itemData.id);
 
     if (existingItem) {
       existingItem.quantity += 1;
@@ -103,9 +157,20 @@ document.addEventListener("DOMContentLoaded", function () {
       showNotification("🛒 Added to cart!");
     }
 
-    localStorage.setItem("cart", JSON.stringify(cart));
-    console.log("💾 Cart saved:", cart);
-    updateCartCount();
+    try {
+        localStorage.setItem("cart", JSON.stringify(cart));
+        console.log("💾 Cart saved:", cart);
+        updateCartCount();
+    } catch (e) {
+        if (e.name === "QuotaExceededError") {
+            alert("⚠️ Cannot add more items! LocalStorage is full (likely due to large images). Try clearing your cart.");
+            // Rollback
+            if (!existingItem) cart.pop();
+            else existingItem.quantity -= 1;
+        } else {
+             console.error("Storage error:", e);
+        }
+    }
   }
 
   function showNotification(message) {
@@ -174,48 +239,71 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Add click listeners to all cart buttons
-  const addToCartButtons = document.querySelectorAll(".add-to-cart-btn");
-  console.log(`🔍 Found ${addToCartButtons.length} cart buttons`);
+  // ============= EVENT DELEGATION FOR CART BUTTONS =============
+  // This ensures clicks work for BOTH static and dynamically added items
+  document.addEventListener("click", function(e) {
+    const btn = e.target.closest(".add-to-cart-btn");
+    
+    if (btn) {
+        e.preventDefault();
+        console.log(`🖱️ Cart button clicked`);
 
-  addToCartButtons.forEach((button, index) => {
-    button.addEventListener("click", function (e) {
-      e.preventDefault();
-      console.log(`🖱️ Button ${index + 1} clicked`);
+        const menuItem = btn.closest(".menu-item");
+        if (!menuItem) {
+          console.error("❌ Menu item not found!");
+          return;
+        }
 
-      const menuItem = this.closest(".menu-item");
-      if (!menuItem) {
-        console.error("❌ Menu item not found!");
-        return;
-      }
+        const card = menuItem.querySelector(".card");
+        const mealId = menuItem.dataset.id;
 
-      const card = menuItem.querySelector(".card");
-      const itemData = {
-        id: menuItem.dataset.id,
-        name: card.querySelector(".card-title").textContent.trim(),
-        price: parseFloat(
-          card
-            .querySelector(".cardFooter h6")
-            .textContent.replace("$", "")
-            .trim()
-        ),
-        image: card.querySelector(".card-img-top").src,
-        description: card.querySelector(".card-text").textContent.trim(),
-        category: menuItem.dataset.category,
-      };
+        // Get meal data from localStorage to ensure we have the correct image
+        const savedMeals = localStorage.getItem("restaurantMeals");
+        let mealData = null;
 
-      addToCart(itemData);
+        if (savedMeals) {
+          const meals = JSON.parse(savedMeals);
+          mealData = meals.find((meal) => meal.id == mealId);
+        }
 
-      // Visual feedback
-      this.style.transform = "scale(0.9)";
-      setTimeout(() => {
-        this.style.transform = "scale(1)";
-      }, 150);
-    });
+        // Use meal data from localStorage if available, otherwise get from DOM
+        const itemData = {
+          id: mealId,
+          name: mealData
+            ? mealData.name
+            : card.querySelector(".card-title").textContent.trim(),
+          price: mealData
+            ? mealData.price
+            : parseFloat(
+                card
+                  .querySelector(".cardFooter h6")
+                  .textContent.replace("$", "")
+                  .trim()
+              ),
+          image: mealData ? null : card.querySelector(".card-img-top").src,
+          description: mealData
+            ? mealData.description
+            : card.querySelector(".card-text").textContent.trim(),
+          category: mealData ? mealData.category : menuItem.dataset.category,
+        };
+
+        console.log("📦 Adding item to cart:", itemData);
+        addToCart(itemData);
+
+        // Visual feedback
+        btn.style.transform = "scale(0.9)";
+        setTimeout(() => {
+          btn.style.transform = "scale(1)";
+        }, 150);
+    }
   });
+
 
   // Initialize cart count
   updateCartCount();
+
+  // Load meals from localStorage
+  loadMealsFromStorage();
 
   // Add animations CSS
   const style = document.createElement("style");
@@ -236,4 +324,5 @@ document.addEventListener("DOMContentLoaded", function () {
   document.head.appendChild(style);
 
   console.log("✅ Cart system ready!");
+  console.log("✅ Meals loading system ready!");
 });

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin - Meals Management</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./assets/css/admin.css" />
+
+    <!-- Link to admin CSS file -->
+    <link rel="stylesheet" href="./assets/css/admin.css" />
+  </head>
+  <body>
+    <div class="admin-header">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h1><i class="fa-solid fa-utensils"></i> Admin Dashboard</h1>
+            <p class="mb-0">Meals Management - Feane Restaurant</p>
+          </div>
+          <a href="index.html" class="btn-back">
+            <i class="fa-solid fa-arrow-left"></i> Back to Website
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container my-5">
+      <!-- Add Meal Section -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <i class="fa-solid fa-plus-circle"></i> Add New Meal
+        </h2>
+        <form id="addMealForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Meal Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="mealName"
+                required
+                placeholder="e.g. Delicious Pizza"
+              />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Price ($)</label>
+              <input
+                type="number"
+                class="form-control"
+                id="mealPrice"
+                required
+                placeholder="20"
+                min="1"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Category</label>
+              <select class="form-select" id="mealCategory" required>
+                <option value="">Select Category</option>
+                <option value="pizza">Pizza</option>
+                <option value="burger">Burger</option>
+                <option value="pasta">Pasta</option>
+                <option value="fries">Fries</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Meal Image</label>
+              <input
+                type="file"
+                class="form-control"
+                id="mealImage"
+                accept="image/*"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea
+              class="form-control"
+              id="mealDescription"
+              rows="3"
+              required
+              placeholder="Enter meal description..."
+            ></textarea>
+          </div>
+
+          <div class="text-center">
+            <img id="imagePreview" class="image-preview" alt="Image Preview" />
+          </div>
+
+          <div class="text-center mt-4">
+            <button type="submit" class="btn-add">
+              <i class="fa-solid fa-plus"></i> Add Meal
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Meals List Section -->
+      <div class="admin-card mt-5">
+        <h2 class="section-title">
+          <i class="fa-solid fa-list"></i> Meals List
+        </h2>
+        <div id="mealsList" class="row">
+          <!-- Meals will be displayed here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Link to admin JavaScript file -->
+    <script src="./assets/js/admin.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <script src="./assets/js/admin.js"></script>
+  </body>
+</html>
