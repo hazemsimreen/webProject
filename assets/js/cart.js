@@ -143,13 +143,8 @@ function checkout() {
     return;
   }
 
-  const total = document.getElementById("total").textContent;
-  alert(`Thank you for your order!\nTotal Amount: ${total}\nWe will contact you soon.`);
-
-  // Clear cart
-  cart = [];
-  localStorage.removeItem("cart");
-  renderCart();
+  // Redirect to Checkout Page
+  window.location.href = "checkout.html";
 }
 
 // Function to continue shopping

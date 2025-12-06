@@ -323,6 +323,39 @@ document.addEventListener("DOMContentLoaded", function () {
   `;
   document.head.appendChild(style);
 
+  // ============= DISCOUNT SYSTEM =============
+  const discountBtns = document.querySelectorAll(".discount .btn");
+  discountBtns.forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      const name = this.dataset.name;
+      const price = parseFloat(this.dataset.price);
+      const discount = parseFloat(this.dataset.discount);
+      
+      if (!name || isNaN(price)) return;
+
+      const finalPrice = price - (price * discount) / 100;
+
+      const itemData = {
+        id: this.dataset.id,
+        name: name,
+        price: parseFloat(finalPrice.toFixed(2)),
+        image: this.dataset.image,
+        description: `Special Deal: ${discount}% Off!`,
+        category: "offer",
+      };
+
+      addToCart(itemData);
+
+      // Button feedback
+      const originalText = this.innerHTML;
+      this.textContent = "Added!";
+      setTimeout(() => {
+        this.innerHTML = originalText;
+      }, 1000);
+    });
+  });
+
   console.log("✅ Cart system ready!");
   console.log("✅ Meals loading system ready!");
 });
