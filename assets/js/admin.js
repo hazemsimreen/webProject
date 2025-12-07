@@ -243,7 +243,9 @@ function showNotification(message) {
 }
 
 // --- OFFERS LOGIC ---
+// --- OFFERS LOGIC ---
 function initOffers(mealsData) {
+    console.log("🎨 initOffers called with", mealsData ? mealsData.length : 0, "meals");
     const mealSelect = document.getElementById("offerMealSelect");
     const addMealBtn = document.getElementById("addMealToOfferBtn");
     const selectedList = document.getElementById("selectedMealsList");
@@ -392,22 +394,45 @@ function initOffers(mealsData) {
     }
 
     // Handle Offer Submit
+    // Handle Offer Submit (Refactored to Button Click)
+    // Handle Offer Submit (Refactored to Button Click)
     const offerForm = document.getElementById("addOfferForm");
+    const submitBtn = document.getElementById("btnSubmitOffer");
+    console.log("👉 btnSubmitOffer found?", !!submitBtn);
+
+    // Prevent default form submission (e.g. on Enter key)
     if (offerForm) {
         offerForm.onsubmit = function(e) {
             e.preventDefault();
+            console.log("🛑 Form submit default prevented");
+        };
+    }
+
+    if (submitBtn) {
+        submitBtn.onclick = function(e) {
+            console.log("🖱️ Add Offer Button Clicked!");
+            e.preventDefault();
             
-            const title = document.getElementById("offerTitle").value;
-            const discount = document.getElementById("offerDiscount").value;
-            const deadline = document.getElementById("offerDeadline").value;
-            const imageFile = document.getElementById("offerImage").files[0];
+            try {
+                const title = document.getElementById("offerTitle").value;
+                const discount = document.getElementById("offerDiscount").value;
+                const deadline = document.getElementById("offerDeadline").value;
+                const imageInput = document.getElementById("offerImage");
+                
+                console.log("📝 Form Values:", { title, discount, deadline, meals: tempSelectedMealIds.length });
 
-            if (tempSelectedMealIds.length === 0) {
-                alert("Please select at least one meal for this offer.");
-                return;
-            }
+                // Validation
+                if (!imageInput.files || !imageInput.files[0]) {
+                     alert("Please select an offer image.");
+                     return;
+                }
+                const imageFile = imageInput.files[0];
 
-            if (imageFile) {
+                if (tempSelectedMealIds.length === 0) {
+                    alert("Please select at least one meal for this offer (click the + button).");
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const newOffer = {
@@ -424,17 +449,29 @@ function initOffers(mealsData) {
                     saveOffers(currentOffers);
 
                     // Reset
-                    offerForm.reset();
+                    if (offerForm) offerForm.reset();
                     tempSelectedMealIds = []; 
                     renderSelectedList();
                     renderExistingOffers();
+                    
                     const preview = document.getElementById("offerImagePreview");
                     if(preview) preview.style.display = "none";
+                    
                     showNotification("✅ Offer added successfully!");
+                    console.log("✅ Offer Added:", newOffer);
+                };
+                reader.onerror = function(err) {
+                    console.error("❌ FileReader error:", err);
+                    alert("Error reading image file");
                 };
                 reader.readAsDataURL(imageFile);
+            } catch (err) {
+                console.error("❌ Error in Add Offer handler:", err);
+                alert("An error occurred while adding the offer. Check console.");
             }
         };
+    } else {
+        console.error("❌ btnSubmitOffer NOT FOUND in DOM");
     }
 }
 
