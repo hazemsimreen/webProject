@@ -18,7 +18,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">Feane</a>
+            <a class="navbar-brand" href="#">Meals Engineers</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -40,6 +40,12 @@
                     <li class="nav-item mx-2">
                         <a class="nav-link text-white" href="book.html">BOOK TABLE</a>
                     </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link text-white" href="orders.html">MY ORDERS</a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link text-white" href="loyalty.html">REWARDS</a>
+                    </li>
                 </ul>
 
                 <div>
@@ -48,9 +54,8 @@
                         <i class="fa-solid fa-user text-white mx-1 "></i>
                     </a>
                     <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                    <i class="fa-solid fa-magnifying-glass text-white mx-1"></i>
-                    <button class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3" type="submit">Order
-                        Online</button>
+
+                    <a href="menu.html" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3">Order Online</a>
                 </div>
             </div>
         </div>
@@ -59,6 +64,23 @@
     <section class="menu my-5">
         <div class="container">
             <h2 class="menuHeader">Our Menu</h2>
+            
+            <!-- SEARCH & FILTER BAR -->
+            <div class="row mb-4 justify-content-center">
+                <div class="col-md-6 mb-2">
+                    <input type="text" id="menuSearch" class="form-control rounded-pill px-4" placeholder="🔍 Search for Burger, Pizza...">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <select id="priceFilter" class="form-select rounded-pill px-4">
+                        <option value="1000">Filter by Price (All)</option>
+                        <option value="10">Under $10</option>
+                        <option value="15">Under $15</option>
+                        <option value="20">Under $20</option>
+                        <option value="25">Under $25</option>
+                    </select>
+                </div>
+            </div>
+
             <ul class="categories pb-3">
                 <li class="category px-4 py-1 active" data-filter="all">All</li>
                 <li class="category px-4 py-1 " data-filter="pizza">Pizza</li>
@@ -283,7 +305,7 @@
                 </div>
 
                 <div class="col-md-4 text-white p-3">
-                    <h4 class="mainHeader py-3">Feane</h4>
+                    <h4 class="mainHeader py-3">Meals Engineers</h4>
                     <p class=" d-flex align-items-center text-white py-2">Necessary, making this the first true
                         generator on the Internet. It uses a dictionary of over 200
                         Latin words, combined with</p>

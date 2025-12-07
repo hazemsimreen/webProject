@@ -53,13 +53,64 @@ document.addEventListener("DOMContentLoaded", () => {
             const name = document.getElementById("fullName").value;
             const phone = document.getElementById("phone").value;
             const address = document.getElementById("address").value;
-            console.log(`📦 Processing order for ${name} (${phone}) at: ${address}`);
+            const notes = document.getElementById("orderNotes").value;
+            console.log(`📦 Processing order for ${name} (${phone}) at: ${address}. Notes: ${notes}`);
+            
+            // --- SAVE ORDER TO HISTORY ---
+            const newOrder = {
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+                customer: { name, phone, address, notes },
+                items: cart, // Save the entire cart
+                total: total
+            };
+
+            const existingOrders = JSON.parse(localStorage.getItem("restaurantOrders") || "[]");
+            existingOrders.push(newOrder);
+            localStorage.setItem("restaurantOrders", JSON.stringify(existingOrders));
+            
+            // --- LOYALTY POINTS SYSTEM ---
+            let pointsEarned = 0;
+            if (total >= 20 && total < 40) {
+                pointsEarned = 5;
+            } else if (total >= 40) {
+                pointsEarned = 10;
+            }
+
+            if (pointsEarned > 0) {
+                // Load current loyalty data
+                const loyaltyData = JSON.parse(localStorage.getItem("loyaltyPoints") || '{"totalPoints": 0, "history": []}');
+                
+                // Add points
+                loyaltyData.totalPoints += pointsEarned;
+                loyaltyData.history.push({
+                    date: new Date().toISOString().split('T')[0],
+                    orderId: newOrder.id,
+                    orderTotal: total,
+                    pointsEarned: pointsEarned,
+                    type: "earned"
+                });
+
+                // Save updated loyalty data
+                localStorage.setItem("loyaltyPoints", JSON.stringify(loyaltyData));
+            }
             
             // Clear Cart
             localStorage.removeItem("cart");
             
             // Show Success
-            alert(`✅ Order Placed Successfully!\n\nThank you, ${name}.\nYour total paid: $${total.toFixed(2)}`);
+            let successMessage = `✅ Order Placed Successfully!\n\nThank you, ${name}.\nYour total paid: $${total.toFixed(2)}`;
+            if (pointsEarned > 0) {
+                const loyaltyData = JSON.parse(localStorage.getItem("loyaltyPoints") || '{"totalPoints": 0}');
+                successMessage += `\n\n🎁 You earned ${pointsEarned} loyalty points!\n💎 Total Points: ${loyaltyData.totalPoints}`;
+                if (loyaltyData.totalPoints >= 80) {
+                    successMessage += `\n\n🎉 You can redeem a FREE meal!`;
+                }
+            }
+            if (notes) {
+                successMessage += `\n\nNotes: ${notes}`;
+            }
+            alert(successMessage);
             
             // Redirect Home
             window.location.href = "index.html";

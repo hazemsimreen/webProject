@@ -40,6 +40,12 @@
                     <li class="nav-item mx-2">
                         <a class="nav-link text-white" href="book.html">BOOK TABLE</a>
                     </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link text-white" href="orders.html">MY ORDERS</a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link text-white" href="loyalty.html">REWARDS</a>
+                    </li>
                 </ul>
 
                 <div>
@@ -52,9 +58,8 @@
                          <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
 </a>
 
-                    <i class="fa-solid fa-magnifying-glass text-white mx-1"></i>
-                    <button class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3" type="submit">Order
-                        Online</button>
+
+                    <a href="menu.html" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3">Order Online</a>
                 </div>
             </div>
         </div>
@@ -134,60 +139,9 @@
 
     <section class="discount my-5 ">
         <div class="container">
-            <div class="row justify-content-center">
-                <div class="card  me-3 bg-dark p-3" style="max-width: 540px;">
-                    <div class="row g-0">
-                        <div class="img-b col-md-4">
-                            <img src="./assets/image/o1.jpg" class="img-fluid rounded-start" alt="...">
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body text-white">
-                                <h5 class="card-title ms-4">Tasty Thursdays</h5>
-                                <h6 class="offer ms-4"><span class="snumber">20%</span>
-                                    <span>Off</span>
-                                </h6>
-                                <button class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3"
-                                    type="button"
-                                    data-id="offer-1"
-                                    data-name="Tasty Thursdays"
-                                    data-price="20"
-                                    data-discount="20"
-                                    data-image="./assets/image/o1.jpg">
-                                    Order Now <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                </button>
-                                <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card  me-3 bg-dark p-3" style="max-width: 540px;">
-                    <div class="row g-0">
-                        <div class="img-b col-md-4">
-                            <img src="./assets/image/o2.jpg" class="img-fluid rounded-start" alt="...">
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body text-white">
-                                <h5 class="card-title ms-4">
-                                    Pizza Days</h5>
-                                <h6 class="offer ms-4"><span class="snumber">15%</span>
-                                    <span>Off</span>
-                                </h6>
-                                <button class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3"
-                                    type="button"
-                                    data-id="offer-2"
-                                    data-name="Pizza Days"
-                                    data-price="20"
-                                    data-discount="15"
-                                    data-image="./assets/image/o2.jpg">
-                                    Order Now <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                </button>
-                                <p class="card-text"><small class="text-body-secondary">Last updated 3 mins ago</small>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <h2 class="menuHeader text-center mb-4">Special Offers</h2>
+            <div class="row justify-content-center" id="offersContainer">
+                <!-- Offers will be injected here -->
             </div>
         </div>
     </section>
@@ -421,33 +375,50 @@
 
             <div class="row justify-content-center">
                 <div class="col-md-6">
-                    <form>
+                    <form id="bookingForm">
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="floatingInput" placeholder="Your Name">
-                            <label for="floatingInput">Your Name</label>
+                            <input type="text" class="form-control" id="bookName" placeholder="Your Name" required>
+                            <label for="bookName">Your Name</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="floatingPassword" placeholder="Phone Number">
-                            <label for="floatingPassword">Phone Number</label>
+                            <input type="text" class="form-control" id="bookPhone" placeholder="Phone Number" required>
+                            <label for="bookPhone">Phone Number</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="floatingEmail" placeholder="Your Email">
-                            <label for="floatingEmail">Your Email</label>
+                            <input type="email" class="form-control" id="bookEmail" placeholder="Your Email" required>
+                            <label for="bookEmail">Your Email</label>
                         </div>
-                        <select class="form-select form-select-lg mb-3" aria-label="Large select example">
-                            <option selected> How many persons? </option>
-                            <option value="1">1</option>
+                        <select class="form-select form-select-lg mb-3" id="bookPersons" aria-label="How many persons" required>
+                            <option value="" selected disabled> How many persons? </option>
                             <option value="2">2</option>
                             <option value="3">3</option>
-                            <option value="3">4</option>
-                            <option value="3">5</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
                         </select>
                         <div class="mb-3">
-                            <label for="dateInput" class="form-label">Select a Date</label>
-                            <input type="date" class="form-control" id="dateInput" required>
+                            <label for="bookTime" class="form-label">Select Time (1 Hour Max)</label>
+                            <select class="form-select mb-3" id="bookTime" required>
+                                <option value="" selected disabled>Select Time...</option>
+                                <option value="10:00">10:00 AM - 11:00 AM</option>
+                                <option value="11:00">11:00 AM - 12:00 PM</option>
+                                <option value="12:00">12:00 PM - 01:00 PM</option>
+                                <option value="13:00">01:00 PM - 02:00 PM</option>
+                                <option value="14:00">02:00 PM - 03:00 PM</option>
+                                <option value="15:00">03:00 PM - 04:00 PM</option>
+                                <option value="16:00">04:00 PM - 05:00 PM</option>
+                                <option value="17:00">05:00 PM - 06:00 PM</option>
+                                <option value="18:00">06:00 PM - 07:00 PM</option>
+                                <option value="19:00">07:00 PM - 08:00 PM</option>
+                                <option value="20:00">08:00 PM - 09:00 PM</option>
+                                <option value="21:00">09:00 PM - 10:00 PM</option>
+                                <option value="22:00">10:00 PM - 11:00 PM</option>
+                            </select>
                         </div>
-                        <button class="btn btn-warning text-white rounded-pill px-5 py-2" type="submit">Book
-                            Now</button>
+                        <div class="mb-3">
+                            <label for="bookDate" class="form-label">Select a Date</label>
+                            <input type="date" class="form-control" id="bookDate" required>
+                        </div>
+                        <button class="btn btn-warning text-white rounded-pill px-5 py-2" type="submit">Book Now</button>
                     </form>
                 </div>
                 <div class="mapouter col-md-6">
@@ -532,6 +503,37 @@
         </div>
     </section>
 
+  <!-- rating section -->
+  <section class="rating_section layout_padding bg-dark text-white text-center">
+    <div class="container">
+      <div class="heading_container heading_center">
+        <h2>Rate Our Restaurant</h2>
+      </div>
+      <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+          <div class="rating-box p-4" style="border: 2px solid #ffbe33; border-radius: 15px; background-color: #333;">
+            <h1 id="overallRating" class="display-3 fw-bold" style="color: #ffbe33;">0.0</h1>
+            <div id="averageStars" class="mb-3" style="color: #ffbe33; font-size: 1.5rem;">
+                <!-- Average stars icons -->
+            </div>
+            <p class="text-white mb-4">Average based on <span id="totalRatings">0</span> reviews</p>
+            
+            <hr style="border-color: #777;">
+            
+            <h5 class="mb-3">Leave your rating:</h5>
+            <div class="user-rating-stars d-flex justify-content-center gap-2" style="font-size: 2.5rem; cursor: pointer; color: #dcdcdc;">
+                <i class="fa-regular fa-star" data-value="1"></i>
+                <i class="fa-regular fa-star" data-value="2"></i>
+                <i class="fa-regular fa-star" data-value="3"></i>
+                <i class="fa-regular fa-star" data-value="4"></i>
+                <i class="fa-regular fa-star" data-value="5"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- end rating section -->
 
     <footer class="footer_section bg-dark text-white text-center">
         <div class="container">

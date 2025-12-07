@@ -17,6 +17,8 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&display=swap"
       rel="stylesheet"
@@ -32,7 +34,7 @@
         <div class="d-flex justify-content-between align-items-center">
           <div>
             <h1><i class="fa-solid fa-utensils"></i> Admin Dashboard</h1>
-            <p class="mb-0">Meals Management - Feane Restaurant</p>
+            <p class="mb-0">Meals Management - Meals Engineers Restaurant</p>
           </div>
           <a href="index.html" class="btn-back">
             <i class="fa-solid fa-arrow-left"></i> Back to Website
@@ -118,6 +120,72 @@
         </form>
       </div>
 
+      <!-- Add Offer Section -->
+      <div class="form-section mt-5">
+        <h2 class="section-title">
+          <i class="fa-solid fa-tags"></i> Add New Offer
+        </h2>
+        <form id="addOfferForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Offer Title</label>
+              <input type="text" class="form-control" id="offerTitle" required placeholder="e.g. tasty Thursdays">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Discount Text</label>
+              <input type="text" class="form-control" id="offerDiscount" required placeholder="e.g. 20% off">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Select Meals for Offer</label>
+                <div class="d-flex gap-2 mb-2">
+                    <select class="form-select" id="offerMealSelect">
+                        <option value="">Choose a meal...</option>
+                        <!-- Options loaded via JS -->
+                    </select>
+                    <button type="button" class="btn btn-secondary" id="addMealToOfferBtn">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <ul class="list-group" id="selectedMealsList" style="max-height: 200px; overflow-y: auto;">
+                    <!-- Selected meals will appear here -->
+                </ul>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Offer Image</label>
+              <input type="file" class="form-control" id="offerImage" accept="image/*" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+              <label class="form-label">Offer Deadline</label>
+              <input type="date" class="form-control" id="offerDeadline" required>
+          </div>
+
+          <div class="text-center">
+            <img id="offerImagePreview" class="image-preview" alt="Image Preview" />
+          </div>
+
+          <div class="text-center mt-4">
+            <button type="submit" class="btn-add">
+              <i class="fa-solid fa-plus"></i> Add Offer
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Offers List Section -->
+      <div class="admin-card mt-5">
+        <h2 class="section-title">
+          <i class="fa-solid fa-list-check"></i> Manage Offers
+        </h2>
+        <div id="offersList" class="row">
+          <!-- Offers will be displayed here -->
+        </div>
+      </div>
+
       <!-- Meals List Section -->
       <div class="admin-card mt-5">
         <h2 class="section-title">
@@ -132,6 +200,41 @@
     <!-- Link to admin JavaScript file -->
     <script src="./assets/js/admin.js"></script>
 
+    <!-- ANALYTICS DASHBOARD -->
+    <div class="container my-5" id="analyticsDashboard">
+        <h2 class="mb-4 text-center">Booking Analytics</h2>
+        <div class="row">
+            <div class="col-md-8 mb-4">
+                <div class="card shadow-sm p-3">
+                    <h5 class="card-title text-center">Bookings Trend (Last 30 Days)</h5>
+                    <div style="height: 300px;">
+                        <canvas id="bookingTrendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm p-3">
+                    <h5 class="card-title text-center">Party Size Distribution</h5>
+                    <div style="height: 300px; display: flex; justify-content: center;">
+                        <canvas id="partySizeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ROW 2: Sales Charts -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card shadow-sm p-3">
+                    <h5 class="card-title text-center">Top Selling Meals</h5>
+                    <div style="height: 300px;">
+                        <canvas id="topSellingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
@@ -140,3 +243,4 @@
     <script src="./assets/js/admin.js"></script>
   </body>
 </html>
+```

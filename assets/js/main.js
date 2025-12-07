@@ -50,29 +50,63 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ============= MENU FILTER =============
+  // ============= MENU FILTER (Advanced) =============
   function attachFilterListeners() {
     const categoryButtons = document.querySelectorAll(".category");
+    const searchInput = document.getElementById("menuSearch");
+    const priceFilter = document.getElementById("priceFilter");
 
+    function applyFilters() {
+        const activeCategoryBtn = document.querySelector(".category.active");
+        const category = activeCategoryBtn ? activeCategoryBtn.getAttribute("data-filter") : "all";
+        
+        const searchText = searchInput ? searchInput.value.toLowerCase().trim() : "";
+        const maxPrice = priceFilter ? parseFloat(priceFilter.value) : 10000;
+
+        const menuItems = document.querySelectorAll(".menu-item");
+
+        menuItems.forEach((item) => {
+            const itemCategory = item.getAttribute("data-category");
+            
+            // Get Price (Remove $ and whitespace)
+            const priceEl = item.querySelector("h6");
+            const price = priceEl ? parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')) : 0;
+            
+            // Get Name
+            const titleEl = item.querySelector("h5.card-title");
+            const name = titleEl ? titleEl.textContent.toLowerCase() : "";
+
+            // Check conditions
+            const matchesCategory = category === "all" || itemCategory === category;
+            const matchesSearch = name.includes(searchText);
+            const matchesPrice = price <= maxPrice;
+
+            if (matchesCategory && matchesSearch && matchesPrice) {
+                item.style.display = "block"; // Show
+            } else {
+                item.style.display = "none"; // Hide
+            }
+        });
+    }
+
+    // 1. Category Click
     categoryButtons.forEach((button) => {
       button.addEventListener("click", function () {
         categoryButtons.forEach((btn) => btn.classList.remove("active"));
         this.classList.add("active");
-
-        const filter = this.getAttribute("data-filter");
-        const menuItems = document.querySelectorAll(".menu-item");
-
-        menuItems.forEach((item) => {
-          if (
-            filter === "all" ||
-            item.getAttribute("data-category") === filter
-          ) {
-            item.style.display = "block";
-          } else {
-            item.style.display = "none";
-          }
-        });
+        applyFilters();
       });
     });
+
+    // 2. Search Input
+    if (searchInput) {
+        searchInput.addEventListener("input", applyFilters);
+    }
+
+    // 3. Price Filter
+    if (priceFilter) {
+        priceFilter.addEventListener("change", applyFilters);
+    }
   }
 
   // Initial filter setup
@@ -146,12 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
       showNotification("✅ Quantity increased!");
     } else {
       cart.push({
-        id: itemData.id,
-        name: itemData.name,
-        price: itemData.price,
-        image: itemData.image,
-        description: itemData.description,
-        category: itemData.category,
+        ...itemData,
         quantity: 1,
       });
       showNotification("🛒 Added to cart!");
@@ -356,6 +385,330 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // ============= OFFERS SYSTEM =============
+  function loadOffers() {
+    const savedOffers = localStorage.getItem("restaurantOffers");
+    const container = document.getElementById("offersContainer");
+    
+    if (savedOffers && container) {
+      // Clear existing offers
+      container.innerHTML = "";
+
+      const offers = JSON.parse(savedOffers);
+      const today = new Date().toISOString().split('T')[0];
+
+      // Filter expired offers
+      const activeOffers = offers.filter(offer => !offer.deadline || offer.deadline >= today);
+
+      if (activeOffers.length === 0) {
+        container.innerHTML = "<p class='text-center text-white'>No special offers at the moment.</p>";
+        return;
+      }
+      
+      container.innerHTML = "";
+      activeOffers.forEach(offer => {
+        const card = `
+          <div class="col-md-6 mb-4">
+              <div class="card bg-dark p-3 h-100" style="max-width: 540px; margin: 0 auto; border: 2px solid #ffbe33; border-radius: 15px; overflow: hidden;">
+                  <div class="row g-0 h-100 align-items-center">
+                      <div class="col-md-5 d-flex justify-content-center">
+                          <div style="width: 130px; height: 130px; border-radius: 50%; border: 4px solid #ffbe33; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #222;">
+                            <img src="${offer.image}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" alt="${offer.title}">
+                          </div>
+                      </div>
+                      <div class="col-md-7">
+                          <div class="card-body text-white">
+                              <h5 class="card-title" style="font-family: 'Dancing Script', cursive; font-size: 2rem;">${offer.title}</h5>
+                              <h6 class="offer mb-3"><span class="display-6 fw-bold" style="color: #fff;">${offer.discount}</span></h6>
+                              <button class="btn btn-warning text-white rounded-pill px-4 py-2 add-offer-btn"
+                                  type="button"
+                                  data-id="${offer.id}"
+                                  data-title="${offer.title}"
+                                  data-discount="${offer.discount}"
+                                  data-meal-ids="${offer.mealIds.join(',') || ''}">
+                              <!-- Note: Removed data-image to save DOM/memory usage, will rely on ID lookup if needed, but for cart we need a strategy. 
+                                   Actually, for the cart item creation below, we won't store the image base64 string in the cart array anymore. -->
+                                  Order Now <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+        `;
+        container.insertAdjacentHTML("beforeend", card);
+      });
+
+      // Attach listeners to new buttons
+      const offerBtns = document.querySelectorAll(".add-offer-btn");
+      offerBtns.forEach(btn => {
+        btn.addEventListener("click", function() {
+            const mealIds = this.dataset.mealIds.split(',').map(Number);
+            const offerId = this.dataset.id;
+            const offerTitle = this.dataset.title;
+            const offerDiscountStr = this.dataset.discount; // e.g., "20% off"
+            // const offerImage = this.dataset.image; // Optimization: Don't read huge string from data attribute
+
+            const allMeals = JSON.parse(localStorage.getItem("restaurantMeals") || "[]");
+            const includedMeals = [];
+            let originalTotalPrice = 0;
+
+            mealIds.forEach(id => {
+                const meal = allMeals.find(m => m.id === id);
+                if (meal) {
+                    includedMeals.push(meal);
+                    originalTotalPrice += parseFloat(meal.price);
+                }
+            });
+
+            if (includedMeals.length === 0) {
+               alert("Sorry, the meals in this offer are no longer available.");
+               return;
+            }
+
+            // Calculate Discount
+            let discountPercent = 0;
+            const discountMatch = offerDiscountStr.match(/(\d+)%/);
+            if (discountMatch) {
+                discountPercent = parseInt(discountMatch[1]);
+            }
+            
+            const finalPrice = originalTotalPrice * (1 - discountPercent / 100);
+
+            // Create Offer Cart Item - OPTIMIZED: No image data stored
+            const offerItem = {
+                id: `offer-${offerId}`, // Use string ID to differentiate
+                offerId: parseInt(offerId), // Store original numeric ID for lookup
+                name: offerTitle,
+                price: parseFloat(finalPrice.toFixed(2)),
+                // image: offerImage, // REMOVED to fix QuotaExceededError
+                description: `Includes: ${includedMeals.map(m => m.name).join(", ")}`,
+                category: "offer",
+                type: "offer",
+                originalPrice: originalTotalPrice, 
+                discount: offerDiscountStr
+            };
+
+            addToCart(offerItem);
+
+            // Visual feedback
+            const originalText = this.innerHTML;
+            this.textContent = `Added!`;
+            this.classList.replace("btn-warning", "btn-success");
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.classList.replace("btn-success", "btn-warning");
+            }, 2000);
+        });
+      });
+    }
+  }
+
+  loadOffers();
+  
+  // ============= RATING SYSTEM =============
+  function initRatingSystem() {
+      const ratingKey = "restaurantRatings";
+      
+      // Load Data or Default (mock data for initial impression)
+      let ratings = JSON.parse(localStorage.getItem(ratingKey));
+      
+      if (!ratings) {
+          ratings = [5, 4, 5, 5, 4]; // Default mock data
+          localStorage.setItem(ratingKey, JSON.stringify(ratings));
+      }
+      
+      // Calculate Average
+      function getStats() {
+          if (ratings.length === 0) return { average: 0, count: 0 };
+          const sum = ratings.reduce((a, b) => a + b, 0);
+          return {
+              average: (sum / ratings.length).toFixed(1),
+              count: ratings.length
+          };
+      }
+      
+      // Render UI
+      function renderUI() {
+          const stats = getStats();
+          const overallRatingEl = document.getElementById("overallRating");
+          const totalRatingsEl = document.getElementById("totalRatings");
+          const averageStarsEl = document.getElementById("averageStars");
+          
+          if (overallRatingEl) overallRatingEl.textContent = stats.average;
+          if (totalRatingsEl) totalRatingsEl.textContent = stats.count;
+          
+          // Render average stars
+          if (averageStarsEl) {
+              let starsHtml = "";
+              const fullStars = Math.floor(stats.average);
+              const hasHalf = stats.average % 1 >= 0.5;
+              
+              for (let i = 1; i <= 5; i++) {
+                  if (i <= fullStars) {
+                      starsHtml += '<i class="fa-solid fa-star"></i>';
+                  } else if (i === fullStars + 1 && hasHalf) {
+                      starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+                  } else {
+                      starsHtml += '<i class="fa-regular fa-star"></i>';
+                  }
+              }
+              averageStarsEl.innerHTML = starsHtml;
+          }
+      }
+      
+      // Interactive Stars
+      const userStars = document.querySelectorAll(".user-rating-stars i");
+      const starContainer = document.querySelector(".user-rating-stars");
+      
+      if (starContainer) {
+          userStars.forEach(star => {
+              // Hover Effect
+              star.addEventListener("mouseover", function() {
+                  const val = this.dataset.value;
+                  highlightStars(val);
+              });
+              
+              // Click to Submit
+              star.addEventListener("click", function() {
+                  const val = parseInt(this.dataset.value);
+                  ratings.push(val);
+                  localStorage.setItem(ratingKey, JSON.stringify(ratings));
+                  renderUI();
+                  showNotification(`Thanks! You rated us ${val} stars ★`);
+                  
+                  // Reset aesthetics
+                  setTimeout(() => {
+                        highlightStars(0); 
+                  }, 1000);
+              });
+          });
+          
+          starContainer.addEventListener("mouseout", function() {
+              // Reset to empty
+              highlightStars(0);
+          });
+      }
+      
+      function highlightStars(count) {
+          userStars.forEach(s => {
+              const val = parseInt(s.dataset.value);
+              if (val <= count) {
+                  s.classList.remove("fa-regular");
+                  s.classList.add("fa-solid");
+                  s.style.color = "#ffbe33";
+              } else {
+                  s.classList.remove("fa-solid");
+                  s.classList.add("fa-regular");
+                  s.style.color = "#dcdcdc";
+              }
+          });
+      }
+
+      // Initial Render
+      renderUI();
+  }
+
+  // Initialize Rating System
+  initRatingSystem();
+
+  // ============= BOOKING SYSTEM =============
+  function initBookingSystem() {
+      // Constraints: 12 tables for each size (2, 3, 4, 5)
+      // TEST MODE: Limit 2-person tables to 1
+      const TABLE_LIMITS = {
+          2: 1, 
+          3: 12,
+          4: 12,
+          5: 12
+      };
+      
+      const bookingForm = document.getElementById("bookingForm");
+      
+      if (!bookingForm) return;
+
+      // Load bookings
+      function getBookings() {
+          return JSON.parse(localStorage.getItem("restaurantBookings") || "[]");
+      }
+
+      function saveBookings(bookings) {
+          localStorage.setItem("restaurantBookings", JSON.stringify(bookings));
+      }
+
+      // Check availability count for a specific date, time, and size
+      function getBookingCount(date, time, size) {
+          const bookings = getBookings();
+          return bookings.filter(b => b.date === date && b.time === time && parseInt(b.size) === parseInt(size)).length;
+      }
+
+      // Find next available date for the SAME time
+      function findNextAvailableDate(startDate, time, size) {
+          let checkDate = new Date(startDate);
+          // Look ahead up to 30 days
+          for (let i = 1; i <= 30; i++) {
+              checkDate.setDate(checkDate.getDate() + 1);
+              const dateStr = checkDate.toISOString().split('T')[0];
+              const count = getBookingCount(dateStr, time, size);
+              if (count < TABLE_LIMITS[size]) {
+                  return dateStr;
+              }
+          }
+          return null; 
+      }
+
+      bookingForm.addEventListener("submit", function(e) {
+          e.preventDefault();
+          
+          const name = document.getElementById("bookName").value;
+          const phone = document.getElementById("bookPhone").value;
+          const email = document.getElementById("bookEmail").value;
+          const persons = parseInt(document.getElementById("bookPersons").value);
+          const date = document.getElementById("bookDate").value;
+          const time = document.getElementById("bookTime").value;
+
+          if (!persons || !date || !time) {
+              alert("Please select date, time, and number of persons.");
+              return;
+          }
+
+          // Check Availability for specific slot
+          const limit = TABLE_LIMITS[persons];
+          const currentCount = getBookingCount(date, time, persons);
+
+          if (currentCount >= limit) {
+              // Table not available for this time slot
+              const nextDate = findNextAvailableDate(date, time, persons);
+              let msg = `Sorry, no tables for ${persons} people available at ${time} on ${date}.`;
+              if (nextDate) {
+                  msg += `\nThe next available ${time} slot is on ${nextDate}.`;
+              } else {
+                  msg += `\nWe are fully booked at this time for the next month.`;
+              }
+              alert(msg);
+          } else {
+              // Available -> Book it
+              const bookings = getBookings();
+              bookings.push({
+                  id: Date.now(),
+                  name: name,
+                  phone: phone,
+                  email: email,
+                  size: persons,
+                  date: date,
+                  time: time
+              });
+              saveBookings(bookings);
+              
+              showNotification(`✅ Table booked for ${date} at ${time}!`);
+              bookingForm.reset();
+          }
+      });
+  }
+
+  initBookingSystem();
+
   console.log("✅ Cart system ready!");
   console.log("✅ Meals loading system ready!");
+  console.log("✅ Booking system ready!");
 });

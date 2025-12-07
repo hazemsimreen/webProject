@@ -23,8 +23,9 @@ function renderCart() {
     return;
   }
 
-  // Load restaurantMeals *once* before loop
+  // Load data *once* before loop
   const restaurantMeals = JSON.parse(localStorage.getItem("restaurantMeals")) || [];
+  const restaurantOffers = JSON.parse(localStorage.getItem("restaurantOffers")) || [];
 
   const itemsHTML = cart
     .map((item) => {
@@ -32,19 +33,35 @@ function renderCart() {
       
       // Make sure image exists
       let imageSrc = item.image;
+      
       if (!imageSrc) {
-        const meal = restaurantMeals.find((m) => m.id == item.id);
-        if (meal) imageSrc = meal.image;
+          if (item.type === 'offer') {
+               // Try to find offer by stored ID or parsed ID
+               const offerId = item.offerId || parseInt(item.id.replace('offer-', ''));
+               const offer = restaurantOffers.find(o => o.id === offerId);
+               if (offer) imageSrc = offer.image;
+          } else {
+               const meal = restaurantMeals.find(m => m.id == item.id);
+               if (meal) imageSrc = meal.image;
+          }
       }
+
       if (!imageSrc) imageSrc = './assets/image/placeholder.png';
       
+      const isOffer = item.type === 'offer';
+      
       return `
-        <div class="cart-item" data-id="${item.id}" data-price="${item.price}">
+        <div class="cart-item" data-id="${item.id}" data-price="${item.price}" style="${isOffer ? 'border-left: 4px solid #ffbe33; background: #fff8e1;' : ''}">
           <img src="${imageSrc}" alt="${item.name}" class="item-image" onerror="this.src='./assets/image/placeholder.png'">
           <div class="item-details">
-            <div class="item-name">${item.name}</div>
-            <div class="item-description">${item.description || 'No description'}</div>
-            <div class="item-extras">Category: ${item.category}</div>
+            <div class="item-name">
+                ${item.name} 
+                ${isOffer ? `<span class="badge bg-warning text-dark ms-2">${item.discount || 'Special Offer'}</span>` : ''}
+            </div>
+            <div class="item-description" style="${isOffer ? 'font-size: 0.85em; color: #666;' : ''}">
+                ${item.description || 'No description'}
+            </div>
+            <div class="item-extras">${isOffer ? 'Bundle Deal' : 'Category: ' + item.category}</div>
             <div class="quantity-control">
               <button class="quantity-btn" onclick="changeQuantity('${item.id}', -1)">-</button>
               <span class="quantity-value" id="qty-${item.id}">${item.quantity}</span>
@@ -52,8 +69,13 @@ function renderCart() {
             </div>
             <button class="remove-btn" onclick="removeItem('${item.id}')">Remove</button>
           </div>
-          <div class="item-price">
-            <div class="current-price" id="price-${item.id}">$${(item.price * item.quantity).toFixed(2)}</div>
+          <div class="item-price d-flex flex-column align-items-end">
+            ${isOffer && item.originalPrice ? `
+                <span class="text-muted text-decoration-line-through" style="font-size: 0.9rem;">$${(item.originalPrice * item.quantity).toFixed(2)}</span>
+            ` : ''}
+            <span class="current-price fw-bold" id="price-${item.id}" style="font-size: 1.1rem; color: ${isOffer ? '#d32f2f' : '#222'};">
+                $${(item.price * item.quantity).toFixed(2)}
+            </span>
           </div>
         </div>
       `;
