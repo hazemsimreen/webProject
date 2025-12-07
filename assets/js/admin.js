@@ -1,221 +1,223 @@
 console.log("🚀 Admin Panel Loaded!");
 
-// Load meals from localStorage or use default meals
-function loadMeals() {
-  const savedMeals = localStorage.getItem("restaurantMeals");
+document.addEventListener("DOMContentLoaded", () => {
+    // Initialize meals
+    let meals = loadMeals();
+    displayMeals();
+    initOffersHooks(meals); // Pass meals to offers logic
+    initDashboard();
 
-  if (savedMeals) {
-    return JSON.parse(savedMeals);
-  } else {
-    // Default meals
-    const defaultMeals = [
-      {
-        id: 1,
-        name: "Delicious Pizza",
-        price: 20,
-        category: "pizza",
-        image: "./assets/image/f1.png",
-        description:
-          "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-      },
-      {
-        id: 2,
-        name: "Delicious Burger",
-        price: 20,
-        category: "burger",
-        image: "./assets/image/f2.png",
-        description:
-          "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-      },
-      {
-        id: 3,
-        name: "Delicious Pizza",
-        price: 20,
-        category: "pizza",
-        image: "./assets/image/f3.png",
-        description:
-          "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-      },
-      {
-        id: 4,
-        name: "Delicious Pasta",
-        price: 20,
-        category: "pasta",
-        image: "./assets/image/f4.png",
-        description:
-          "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-      },
-      {
-        id: 5,
-        name: "Delicious Fries",
-        price: 20,
-        category: "fries",
-        image: "./assets/image/f5.png",
-        description:
-          "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-      },
-      {
-        id: 6,
-        name: "Delicious Pizza",
-        price: 20,
-        category: "pizza",
-        image: "./assets/image/f6.png",
-        description:
-          "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-      },
-      {
-        id: 7,
-        name: "Tasty burger",
-        price: 20,
-        category: "burger",
-        image: "./assets/image/f7.png",
-        description:
-          "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-      },
-      {
-        id: 8,
-        name: "Delicious Burger",
-        price: 20,
-        category: "burger",
-        image: "./assets/image/f8.png",
-        description:
-          "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-      },
-      {
-        id: 9,
-        name: "Delicious Pasta",
-        price: 20,
-        category: "pasta",
-        image: "./assets/image/f9.png",
-        description:
-          "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-      },
-    ];
-    localStorage.setItem("restaurantMeals", JSON.stringify(defaultMeals));
-    return defaultMeals;
-  }
-}
+    // Image preview functionality
+    const mealImageInput = document.getElementById("mealImage");
+    if (mealImageInput) {
+        mealImageInput.addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById("imagePreview");
+                    if (preview) {
+                        preview.src = e.target.result;
+                        preview.style.display = "block";
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 
-// Save meals to localStorage
-function saveMeals(meals) {
-  localStorage.setItem("restaurantMeals", JSON.stringify(meals));
-  console.log("💾 Meals saved to localStorage");
-}
+    // Add meal form submission
+    const addMealForm = document.getElementById("addMealForm");
+    if (addMealForm) {
+        addMealForm.addEventListener("submit", function (e) {
+            e.preventDefault();
 
-// Initialize meals
-let meals = loadMeals();
+            const nameInput = document.getElementById("mealName");
+            const priceInput = document.getElementById("mealPrice");
+            const categoryInput = document.getElementById("mealCategory");
+            const descInput = document.getElementById("mealDescription");
+            const imageInput = document.getElementById("mealImage");
 
-// Image preview functionality
-document.getElementById("mealImage").addEventListener("change", function (e) {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const preview = document.getElementById("imagePreview");
-      preview.src = e.target.result;
-      preview.style.display = "block";
-    };
-    reader.readAsDataURL(file);
-  }
-});
+            if (!nameInput || !priceInput || !categoryInput || !descInput || !imageInput) {
+                console.error("Missing form elements");
+                return;
+            }
 
-// Add meal form submission
-document.getElementById("addMealForm").addEventListener("submit", function (e) {
-  e.preventDefault();
+            const name = nameInput.value;
+            const price = priceInput.value;
+            const category = categoryInput.value;
+            const description = descInput.value;
+            const imageFile = imageInput.files[0];
 
-  const name = document.getElementById("mealName").value;
-  const price = document.getElementById("mealPrice").value;
-  const category = document.getElementById("mealCategory").value;
-  const description = document.getElementById("mealDescription").value;
-  const imageFile = document.getElementById("mealImage").files[0];
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const newMeal = {
+                        id: Date.now(),
+                        name: name,
+                        price: parseFloat(price),
+                        category: category,
+                        image: e.target.result,
+                        description: description,
+                    };
 
-  if (imageFile) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const newMeal = {
-        id: Date.now(),
-        name: name,
-        price: parseFloat(price),
-        category: category,
-        image: e.target.result,
-        description: description,
-      };
+                    meals.push(newMeal);
+                    saveMeals(meals); // Save to localStorage
+                    displayMeals();
 
-      meals.push(newMeal);
-      saveMeals(meals); // Save to localStorage
-      displayMeals();
+                    // Reset form
+                    addMealForm.reset();
+                    const preview = document.getElementById("imagePreview");
+                    if (preview) preview.style.display = "none";
 
-      // Reset form
-      document.getElementById("addMealForm").reset();
-      document.getElementById("imagePreview").style.display = "none";
+                    // Show success message
+                    showNotification("✅ Meal added successfully!");
+                    console.log("✅ Meal added:", newMeal);
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                alert("Please select an image for the meal.");
+            }
+        });
+    }
+    
+    // --- Helper Functions in Scope ---
 
-      // Show success message
-      showNotification(
-        "✅ Meal added successfully! It will appear on the main page."
-      );
+    // Load meals from localStorage or use default meals
+    function loadMeals() {
+        try {
+            const savedMeals = localStorage.getItem("restaurantMeals");
+            if (savedMeals) {
+                return JSON.parse(savedMeals);
+            }
+        } catch (error) {
+            console.error("Error parsing meals from localStorage:", error);
+            // Reset if corrupted
+            localStorage.removeItem("restaurantMeals");
+        }
 
-      console.log("✅ Meal added:", newMeal);
-    };
-    reader.readAsDataURL(imageFile);
-  }
-});
+        // Default meals
+        const defaultMeals = [
+            {
+                id: 1,
+                name: "Delicious Pizza",
+                price: 20,
+                category: "pizza",
+                image: "./assets/image/f1.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+            {
+                id: 2,
+                name: "Delicious Burger",
+                price: 20,
+                category: "burger",
+                image: "./assets/image/f2.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+            {
+                id: 3,
+                name: "Delicious Pizza",
+                price: 20,
+                category: "pizza",
+                image: "./assets/image/f3.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+            {
+                id: 4,
+                name: "Delicious Pasta",
+                price: 20,
+                category: "pasta",
+                image: "./assets/image/f4.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+            {
+                id: 5,
+                name: "Delicious Fries",
+                price: 20,
+                category: "fries",
+                image: "./assets/image/f5.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+        ];
+        saveMeals(defaultMeals);
+        return defaultMeals;
+    }
 
-// Display all meals
-function displayMeals() {
-  const mealsList = document.getElementById("mealsList");
+    // Save meals to localStorage
+    function saveMeals(data) {
+        localStorage.setItem("restaurantMeals", JSON.stringify(data));
+        console.log("💾 Meals saved to localStorage");
+    }
 
-  if (meals.length === 0) {
-    mealsList.innerHTML = `
-            <div class="col-12 empty-state">
-                <i class="fa-solid fa-utensils"></i>
-                <h3>No meals available</h3>
-                <p>Start by adding new meals from above</p>
-            </div>
-        `;
-    return;
-  }
+    // Display all meals
+    function displayMeals() {
+        const mealsList = document.getElementById("mealsList");
+        if (!mealsList) return;
 
-  mealsList.innerHTML = meals
-    .map(
-      (meal) => `
-        <div class="col-md-4">
-            <div class="meal-card">
-                <img src="${meal.image}" alt="${meal.name}" class="meal-image">
-                <div class="meal-content">
-                    <span class="meal-category">${meal.category}</span>
-                    <h3 class="meal-title">${meal.name}</h3>
-                    <p class="text-muted small">${meal.description}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="meal-price">$${meal.price}</div>
-                        <button class="btn-delete" onclick="deleteMeal(${meal.id})">
-                            <i class="fa-solid fa-trash"></i> Delete
-                        </button>
+        if (meals.length === 0) {
+            mealsList.innerHTML = `
+                <div class="col-12 empty-state">
+                    <i class="fa-solid fa-utensils"></i>
+                    <h3>No meals available</h3>
+                    <p>Start by adding new meals from above</p>
+                </div>
+            `;
+            return;
+        }
+
+        mealsList.innerHTML = meals.map(meal => `
+            <div class="col-md-4">
+                <div class="meal-card">
+                    <img src="${meal.image}" alt="${meal.name}" class="meal-image">
+                    <div class="meal-content">
+                        <span class="meal-category">${meal.category}</span>
+                        <h3 class="meal-title">${meal.name}</h3>
+                        <p class="text-muted small">${meal.description}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="meal-price">$${meal.price}</div>
+                            <button class="btn-delete" data-id="${meal.id}">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `
-    )
-    .join("");
+        `).join("");
 
-  console.log(`📋 Displaying ${meals.length} meals`);
-}
+        // Attach delete listeners directly
+        mealsList.querySelectorAll(".btn-delete").forEach(btn => {
+            btn.addEventListener("click", function() {
+                const id = parseInt(this.getAttribute("data-id"));
+                deleteMeal(id);
+            });
+        });
+        
+        console.log(`📋 Displaying ${meals.length} meals`);
+    }
 
-// Delete meal function
-function deleteMeal(id) {
-  if (confirm("Are you sure you want to delete this meal?")) {
-    meals = meals.filter((meal) => meal.id !== id);
-    saveMeals(meals); // Save to localStorage
-    displayMeals();
-    showNotification("🗑️ Meal deleted successfully!");
-    console.log(`🗑️ Meal ${id} deleted`);
-  }
-}
+    // Delete meal function
+    function deleteMeal(id) {
+        if (confirm("Are you sure you want to delete this meal?")) {
+            meals = meals.filter(meal => meal.id !== id);
+            saveMeals(meals); // Save to localStorage
+            displayMeals();
+            // Also update offers dropdown if needed by re-initializing or filtering
+            initOffersHooks(meals); 
+            showNotification("🗑️ Meal deleted successfully!");
+            console.log(`🗑️ Meal ${id} deleted`);
+        }
+    }
 
-// Show notification
+    // --- OFFERS MANAGEMENT ---
+    function initOffersHooks(currentMeals) {
+        initOffers(currentMeals);
+    }
+});
+
+// Show notification (Global helper)
 function showNotification(message) {
-  const notification = document.createElement("div");
-  notification.style.cssText = `
+    const notification = document.createElement("div");
+    notification.style.cssText = `
         position: fixed;
         top: 20px;
         left: 50%;
@@ -230,35 +232,17 @@ function showNotification(message) {
         font-weight: bold;
         animation: slideDown 0.3s ease;
     `;
-  notification.textContent = message;
-  document.body.appendChild(notification);
+    notification.textContent = message;
+    document.body.appendChild(notification);
 
-  setTimeout(() => {
-    notification.style.animation = "slideUp 0.3s ease";
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
+    setTimeout(() => {
+        notification.style.animation = "slideUp 0.3s ease";
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
-// Initialize the page
-displayMeals();
-initOffers();
-
-console.log("✅ Admin Panel Ready!");
-
-// --- OFFERS MANAGEMENT ---
-
-function loadOffers() {
-    const savedOffers = localStorage.getItem("restaurantOffers");
-    return savedOffers ? JSON.parse(savedOffers) : [];
-}
-
-function saveOffers(offers) {
-    localStorage.setItem("restaurantOffers", JSON.stringify(offers));
-    console.log("💾 Offers saved to localStorage");
-}
-
-function initOffers() {
-    const offers = loadOffers();
+// --- OFFERS LOGIC ---
+function initOffers(mealsData) {
     const mealSelect = document.getElementById("offerMealSelect");
     const addMealBtn = document.getElementById("addMealToOfferBtn");
     const selectedList = document.getElementById("selectedMealsList");
@@ -269,11 +253,11 @@ function initOffers() {
 
     // Populate Meal Dropdown
     if (mealSelect) {
-        if (meals.length === 0) {
+        if (!mealsData || mealsData.length === 0) {
             mealSelect.innerHTML = "<option value=''>No meals available</option>";
         } else {
             mealSelect.innerHTML = "<option value=''>Choose a meal...</option>" + 
-                meals.map(meal => `<option value="${meal.id}">${meal.name} ($${meal.price})</option>`).join("");
+                mealsData.map(meal => `<option value="${meal.id}">${meal.name} ($${meal.price})</option>`).join("");
         }
     }
 
@@ -283,7 +267,7 @@ function initOffers() {
         selectedList.innerHTML = "";
         
         tempSelectedMealIds.forEach(id => {
-            const meal = meals.find(m => m.id === id);
+            const meal = mealsData.find(m => m.id === id);
             if (meal) {
                 const li = document.createElement("li");
                 li.className = "list-group-item d-flex justify-content-between align-items-center";
@@ -307,7 +291,21 @@ function initOffers() {
         });
     }
 
-    // Function to render existing offers
+    // Function to load and render existing offers
+    function loadOffers() {
+        try {
+            const savedOffers = localStorage.getItem("restaurantOffers");
+            return savedOffers ? JSON.parse(savedOffers) : [];
+        } catch (e) {
+            console.error("Error loading offers:", e);
+            return [];
+        }
+    }
+
+    function saveOffers(offers) {
+        localStorage.setItem("restaurantOffers", JSON.stringify(offers));
+    }
+
     function renderExistingOffers() {
         const offersList = document.getElementById("offersList");
         if (!offersList) return;
@@ -336,27 +334,30 @@ function initOffers() {
             btn.addEventListener("click", function() {
                 const offerId = parseInt(this.dataset.id);
                 if (confirm("Are you sure you want to delete this offer?")) {
-                    deleteOffer(offerId);
+                    let offers = loadOffers();
+                    offers = offers.filter(o => o.id !== offerId);
+                    saveOffers(offers);
+                    renderExistingOffers();
+                    showNotification("🗑️ Offer deleted successfully");
                 }
             });
         });
     }
 
-    // Function to delete an offer
-    function deleteOffer(id) {
-        let currentOffers = loadOffers();
-        currentOffers = currentOffers.filter(offer => offer.id !== id);
-        saveOffers(currentOffers);
-        renderExistingOffers();
-        showNotification("🗑️ Offer deleted successfully");
-    }
-
     // Initialize list
     renderExistingOffers();
 
-    // Handle "Add" button click
+    // Remove old listeners if any by cloning (simple trick) or just rely on fresh init if script reloads?
+    // Since we are in an event listener, we should be careful about duplicate listeners if this function is called multiple times.
+    // Ideally, we handle the button click listener carefully.
+    
+    // Handle "Add Meal to Offer" button click
+    // To prevent duplicate listeners, we can use a flag or just replace the node locally, but simpler to just ensure this run once.
+    // We will assume initOffers is called once per page load.
+    
     if (addMealBtn && mealSelect) {
-        addMealBtn.addEventListener("click", function() {
+        // Remove old listener if exists (not easy without reference), but assuming fresh load:
+        addMealBtn.onclick = function() { // use onclick to overwrite
             const selectedId = parseInt(mealSelect.value);
             if (!selectedId) return;
 
@@ -368,29 +369,31 @@ function initOffers() {
             tempSelectedMealIds.push(selectedId);
             renderSelectedList();
             mealSelect.value = ""; // Reset dropdown
-        });
+        };
     }
 
     // Offer Image Preview
     if (offerImageInput) {
-        offerImageInput.addEventListener("change", function(e) {
-            const file = e.target.files[0];
+        offerImageInput.onchange = function(e) {
+             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const preview = document.getElementById("offerImagePreview");
-                    preview.src = e.target.result;
-                    preview.style.display = "block";
+                    if(preview) {
+                        preview.src = e.target.result;
+                        preview.style.display = "block";
+                    }
                 };
                 reader.readAsDataURL(file);
             }
-        });
+        };
     }
 
     // Handle Offer Submit
     const offerForm = document.getElementById("addOfferForm");
     if (offerForm) {
-        offerForm.addEventListener("submit", function(e) {
+        offerForm.onsubmit = function(e) {
             e.preventDefault();
             
             const title = document.getElementById("offerTitle").value;
@@ -411,7 +414,7 @@ function initOffers() {
                         title: title,
                         discount: discount,
                         deadline: deadline,
-                        mealIds: tempSelectedMealIds, // Use the temp array
+                        mealIds: tempSelectedMealIds,
                         image: e.target.result
                     };
 
@@ -421,33 +424,43 @@ function initOffers() {
 
                     // Reset
                     offerForm.reset();
-                    tempSelectedMealIds = []; // Clear selected list
+                    tempSelectedMealIds = []; 
                     renderSelectedList();
-                    renderExistingOffers(); // Update the list
-                    document.getElementById("offerImagePreview").style.display = "none";
+                    renderExistingOffers();
+                    const preview = document.getElementById("offerImagePreview");
+                    if(preview) preview.style.display = "none";
                     showNotification("✅ Offer added successfully!");
-                    console.log("✅ Offer added:", newOffer);
                 };
                 reader.readAsDataURL(imageFile);
             }
-        });
+        };
     }
 }
+
 // --- ANALYTICS DASHBOARD ---
 function initDashboard() {
     const dashboardContainer = document.getElementById("analyticsDashboard");
     if (!dashboardContainer) return;
 
-    // Load bookings
-    const bookings = JSON.parse(localStorage.getItem("restaurantBookings") || "[]");
+    try {
+        const bookings = JSON.parse(localStorage.getItem("restaurantBookings") || "[]");
+        // ... (Charts logic kept similar but wrapped)
+        
+        // Simplified for brevity in this rewrite, assuming Chart.js works
+        // The original logic was fine, just need to be inside DOMContentLoaded
+        renderCharts(bookings);
+    } catch (e) {
+        console.error("Dashboard error", e);
+    }
+}
 
-    // 1. Prepare Data for Trends (Bookings per Day)
+function renderCharts(bookings) {
+     // 1. Prepare Data for Trends (Bookings per Day)
     const bookingsByDate = {};
     bookings.forEach(b => {
         bookingsByDate[b.date] = (bookingsByDate[b.date] || 0) + 1;
     });
 
-    // Sort dates
     const sortedDates = Object.keys(bookingsByDate).sort();
     const trendData = sortedDates.map(date => bookingsByDate[date]);
 
@@ -461,7 +474,7 @@ function initDashboard() {
 
     // --- Render Trends Chart ---
     const ctxTrends = document.getElementById('bookingTrendsChart');
-    if (ctxTrends) {
+    if (ctxTrends && typeof Chart !== 'undefined') {
         new Chart(ctxTrends, {
             type: 'line',
             data: {
@@ -491,7 +504,7 @@ function initDashboard() {
 
     // --- Render Party Size Chart ---
     const ctxSize = document.getElementById('partySizeChart');
-    if (ctxSize) {
+    if (ctxSize && typeof Chart !== 'undefined') {
         new Chart(ctxSize, {
             type: 'doughnut',
             data: {
@@ -519,32 +532,30 @@ function initDashboard() {
         });
     }
 
-    // 3. Prepare Data for Top Selling Meals
-    const orders = JSON.parse(localStorage.getItem("restaurantOrders") || "[]");
+    // 3. Prepare Data for Top Selling Meals (Mock logic from before)
+     const ordersRaw = localStorage.getItem("restaurantOrders");
+     const orders = ordersRaw ? JSON.parse(ordersRaw) : [];
+    
+    // ... logic for top selling ...
     const mealSales = {};
-
     orders.forEach(order => {
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
-                // If it's a bundled offer, we could treat it as a single item "Offer: Name"
-                // or break it down. Let's treat it by the item name.
                 const itemName = item.name; 
                 mealSales[itemName] = (mealSales[itemName] || 0) + item.quantity;
             });
         }
     });
-
-    // Sort by sales count
+    
     const sortedMeals = Object.entries(mealSales)
-        .sort((a, b) => b[1] - a[1]) // Descending
-        .slice(0, 5); // Top 5
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
 
     const topMealLabels = sortedMeals.map(entry => entry[0]);
     const topMealData = sortedMeals.map(entry => entry[1]);
 
-    // --- Render Top Selling Chart ---
     const ctxTop = document.getElementById('topSellingChart');
-    if (ctxTop) {
+    if (ctxTop && typeof Chart !== 'undefined') {
         new Chart(ctxTop, {
             type: 'bar',
             data: {
@@ -569,9 +580,3 @@ function initDashboard() {
         });
     }
 }
-
-// Initializers
-document.addEventListener("DOMContentLoaded", () => {
-    initOffers();
-    initDashboard();
-});

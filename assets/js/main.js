@@ -5,6 +5,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ============= LOAD MEALS FROM LOCALSTORAGE =============
   function loadMealsFromStorage() {
+    // Skip rendering on index.html - looping-slider.js handles it
+    if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
+      console.log('📍 On index page - looping-slider.js will handle meal rendering');
+      return;
+    }
+    
     const savedMeals = localStorage.getItem("restaurantMeals");
     if (savedMeals) {
       const meals = JSON.parse(savedMeals);
@@ -707,6 +713,22 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   initBookingSystem();
+
+  // Toggle Rating Section
+  const toggleRatingBtn = document.getElementById("toggleRatingBtn");
+  const ratingContent = document.getElementById("ratingContent");
+  
+  if (toggleRatingBtn && ratingContent) {
+    toggleRatingBtn.addEventListener("click", function() {
+      if (ratingContent.style.display === "none") {
+        ratingContent.style.display = "block";
+        this.innerHTML = '<i class="fa-solid fa-times me-2"></i>Close';
+      } else {
+        ratingContent.style.display = "none";
+        this.innerHTML = '<i class="fa-solid fa-star me-2"></i>Add Rates';
+      }
+    });
+  }
 
   console.log("✅ Cart system ready!");
   console.log("✅ Meals loading system ready!");
