@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let meals = loadMeals();
     displayMeals();
     initOffersHooks(meals); // Pass meals to offers logic
+    initGalleryHooks(); // Initialize Gallery Manager
     initDashboard();
 
     // Image preview functionality
@@ -434,6 +435,166 @@ function initOffers(mealsData) {
                 reader.readAsDataURL(imageFile);
             }
         };
+    }
+}
+
+// --- GALLERY MANAGEMENT ---
+function initGalleryHooks() {
+    initGalleryManager();
+}
+
+function initGalleryManager() {
+    const galleryList = document.getElementById("galleryList");
+    const deletedGalleryList = document.getElementById("deletedGalleryList");
+
+    // Load active photos
+    function loadGallery() {
+        try {
+            return JSON.parse(localStorage.getItem("customerPhotos") || "[]");
+        } catch (e) {
+            console.error("Error loading gallery:", e);
+            return [];
+        }
+    }
+
+    // Load deleted photos
+    function loadDeletedGallery() {
+        try {
+            return JSON.parse(localStorage.getItem("deletedCustomerPhotos") || "[]");
+        } catch (e) {
+            console.error("Error loading deleted gallery:", e);
+            return [];
+        }
+    }
+
+    // Save active photos
+    function saveGallery(photos) {
+        localStorage.setItem("customerPhotos", JSON.stringify(photos));
+    }
+
+    // Save deleted photos
+    function saveDeletedGallery(photos) {
+        localStorage.setItem("deletedCustomerPhotos", JSON.stringify(photos));
+    }
+
+    // Render Active Photos
+    function renderGalleryAdmin() {
+        if (!galleryList) return;
+        const photos = loadGallery();
+
+        if (photos.length === 0) {
+            galleryList.innerHTML = '<p class="text-muted text-center col-12">No photos in gallery.</p>';
+            return;
+        }
+
+        galleryList.innerHTML = photos.map(photo => `
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="${photo.image}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                    <div class="card-body p-2">
+                        <small class="text-muted d-block mb-1">By: ${photo.uploadedBy}</small>
+                        <p class="card-text small mb-2 text-truncate" title="${photo.caption || ''}">
+                            ${photo.caption || '<em>No caption</em>'}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-secondary"><i class="fa-solid fa-heart"></i> ${photo.likes}</span>
+                            <button class="btn btn-sm btn-danger delete-photo-btn" data-id="${photo.id}">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join("");
+
+        // Attach listeners
+        galleryList.querySelectorAll(".delete-photo-btn").forEach(btn => {
+            btn.addEventListener("click", function() {
+                const id = parseInt(this.dataset.id);
+                deletePhoto(id);
+            });
+        });
+    }
+
+    // Render Deleted Photos History
+    function renderDeletedGalleryAdmin() {
+        if (!deletedGalleryList) return;
+        const photos = loadDeletedGallery();
+
+        if (photos.length === 0) {
+            deletedGalleryList.innerHTML = '<p class="text-muted text-center col-12">No deleted photos history.</p>';
+            return;
+        }
+
+        // Sort by deleted date descending
+        photos.sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
+
+        deletedGalleryList.innerHTML = photos.map(photo => `
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card h-100 shadow-sm border-danger" style="opacity: 0.8;">
+                    <img src="${photo.image}" class="card-img-top" style="height: 150px; object-fit: cover; filter: grayscale(100%);">
+                    <div class="card-body p-2">
+                         <span class="badge bg-danger mb-2">Deleted</span>
+                        <p class="card-text small mb-1 text-danger fw-bold">Note: ${photo.deleteReason}</p>
+                        <small class="text-muted d-block">Original Caption: ${photo.caption || 'None'}</small>
+                        <small class="text-muted d-block" style="font-size: 10px;">Deleted on: ${new Date(photo.deletedAt).toLocaleString()}</small>
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    // Delete Photo Logic
+    function deletePhoto(id) {
+        // 1. Prompt for reason
+        const reason = prompt("⚠️ Why are you deleting this photo? (This note will be saved)");
+        if (reason === null) return; // Cancelled
+        const finalReason = reason.trim() || "No reason provided";
+
+        // 2. Move from active to deleted
+        const activePhotos = loadGallery();
+        const photoIndex = activePhotos.findIndex(p => p.id === id);
+        
+        if (photoIndex === -1) {
+            showNotification("❌ Photo not found!");
+            return;
+        }
+
+        const photoToDelete = activePhotos[photoIndex];
+        
+        // Add metadata
+        photoToDelete.deletedAt = new Date().toISOString();
+        photoToDelete.deleteReason = finalReason;
+
+        // Save to deleted list
+        const deletedPhotos = loadDeletedGallery();
+        deletedPhotos.push(photoToDelete);
+        saveDeletedGallery(deletedPhotos);
+
+        // Remove from active list
+        activePhotos.splice(photoIndex, 1);
+        saveGallery(activePhotos);
+
+        // 3. Refresh UI
+        renderGalleryAdmin();
+        renderDeletedGalleryAdmin();
+        showNotification("🗑️ Photo deleted & archived.");
+    }
+
+    // Initial render
+    renderGalleryAdmin();
+    renderDeletedGalleryAdmin();
+
+    // Listen for tab switches
+    const galleryTabs = document.getElementById('galleryTabs');
+    if (galleryTabs) {
+        galleryTabs.addEventListener('click', function(e) {
+            if(e.target.id === 'deleted-photos-tab') {
+                renderDeletedGalleryAdmin();
+            } else if (e.target.id === 'active-photos-tab') {
+                renderGalleryAdmin();
+            }
+        });
     }
 }
 
