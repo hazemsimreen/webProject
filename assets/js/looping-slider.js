@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <div class="slider-viewport">
                 <div class="slider-track">
                     ${meals.map(meal => `
-                        <div class="food-card">
+                        <div class="food-card menu-item" data-id="${meal.id}" data-category="${meal.category}">
                             <div class="food-card-image">
                                 <img src="${meal.image}" alt="${meal.name}">
                             </div>
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     <div class="slider-viewport">
                         <div class="slider-track">
                             ${filteredMeals.map(meal => `
-                                <div class="food-card">
+                                <div class="food-card menu-item" data-id="${meal.id}" data-category="${meal.category}">
                                     <div class="food-card-image">
                                         <img src="${meal.image}" alt="${meal.name}">
                                     </div>

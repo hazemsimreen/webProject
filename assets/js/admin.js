@@ -4,28 +4,32 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize meals
     let meals = loadMeals();
     displayMeals();
-    initOffersHooks(meals); // Pass meals to offers logic
-    initGalleryHooks(); // Initialize Gallery Manager
+    
+    // Initialize other sections
+    initOffersHooks(meals);
+    initGalleryHooks();
     initDashboard();
 
-    // Image preview functionality
-    const mealImageInput = document.getElementById("mealImage");
-    if (mealImageInput) {
-        mealImageInput.addEventListener("change", function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const preview = document.getElementById("imagePreview");
-                    if (preview) {
-                        preview.src = e.target.result;
-                        preview.style.display = "block";
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+    // --- OFFERS MANAGEMENT EXPOSED ---
+    let updateOfferMealsDropdown = null;
+
+    function initOffersHooks(currentMeals) {
+        // We only want to init logic ONCE, but we need a way to update the dropdown when meals change.
+        // So we splits initOffers into init (once) and update (many times).
+        if (!updateOfferMealsDropdown) {
+             updateOfferMealsDropdown = initOffers(currentMeals); 
+        } else {
+             updateOfferMealsDropdown(currentMeals);
+        }
     }
+    
+    // Make sure we have the update function available for other parts
+    // We can't easily export it from inside DOMContentLoaded without global scope or better structure
+    // But since everything is inside this closure, we can just hoist the variable `updateOfferMealsDropdown` 
+    // defined above and assign it the result of initOffers.
+
+    // ... But wait, initOffers returns the update function? Let's check initOffers implementation below.
+    // We will refactor initOffers to return the update function.
 
     // Add meal form submission
     const addMealForm = document.getElementById("addMealForm");
@@ -51,6 +55,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const imageFile = imageInput.files[0];
 
             if (imageFile) {
+                // Check size (2MB limit check loosely)
+                if (imageFile.size > 2 * 1024 * 1024) {
+                    alert("⚠️ Image is too large (over 2MB). Please use a smaller image to avoid storage issues.");
+                }
+
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     const newMeal = {
@@ -62,18 +71,36 @@ document.addEventListener("DOMContentLoaded", () => {
                         description: description,
                     };
 
-                    meals.push(newMeal);
-                    saveMeals(meals); // Save to localStorage
-                    displayMeals();
+                    try {
+                        meals.push(newMeal);
+                        saveMeals(meals); // Save to localStorage
+                        
+                        displayMeals();
+                        
+                        // Update offers dropdown
+                        if (updateOfferMealsDropdown) updateOfferMealsDropdown(meals);
 
-                    // Reset form
-                    addMealForm.reset();
-                    const preview = document.getElementById("imagePreview");
-                    if (preview) preview.style.display = "none";
+                        // Reset form
+                        addMealForm.reset();
+                        const preview = document.getElementById("imagePreview");
+                        if (preview) preview.style.display = "none";
 
-                    // Show success message
-                    showNotification("✅ Meal added successfully!");
-                    console.log("✅ Meal added:", newMeal);
+                        // Show success message
+                        showNotification("✅ Meal added successfully!");
+                        console.log("✅ Meal added:", newMeal);
+                    } catch (err) {
+                        console.error("Storage Error:", err);
+                        if (err.name === "QuotaExceededError" || err.message.includes("quota")) {
+                            alert("❌ Storage Full! Cannot save this meal. The image might be too large. Try a smaller image or delete old items.");
+                            // Rollback
+                            meals.pop(); 
+                        } else {
+                            alert("❌ Error saving meal: " + err.message);
+                        }
+                    }
+                };
+                reader.onerror = function() {
+                    alert("Error reading file");
                 };
                 reader.readAsDataURL(imageFile);
             } else {
@@ -146,6 +173,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Save meals to localStorage
     function saveMeals(data) {
+        // This logic is now wrapped in try/catch in the caller, but good to have here too optionally.
+        // Letting caller handle it allows for rollback logic.
         localStorage.setItem("restaurantMeals", JSON.stringify(data));
         console.log("💾 Meals saved to localStorage");
     }
@@ -202,8 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
             meals = meals.filter(meal => meal.id !== id);
             saveMeals(meals); // Save to localStorage
             displayMeals();
-            // Also update offers dropdown if needed by re-initializing or filtering
-            initOffersHooks(meals); 
+            // Also update offers dropdown 
+            if (updateOfferMealsDropdown) updateOfferMealsDropdown(meals); 
             showNotification("🗑️ Meal deleted successfully!");
             console.log(`🗑️ Meal ${id} deleted`);
         }
@@ -242,238 +271,251 @@ function showNotification(message) {
     }, 3000);
 }
 
-// --- OFFERS LOGIC ---
-// --- OFFERS LOGIC ---
-function initOffers(mealsData) {
-    console.log("🎨 initOffers called with", mealsData ? mealsData.length : 0, "meals");
-    const mealSelect = document.getElementById("offerMealSelect");
-    const addMealBtn = document.getElementById("addMealToOfferBtn");
-    const selectedList = document.getElementById("selectedMealsList");
-    const offerImageInput = document.getElementById("offerImage");
-    
-    // Internal state for selected logic
-    let tempSelectedMealIds = [];
-
-    // Populate Meal Dropdown
-    if (mealSelect) {
-        if (!mealsData || mealsData.length === 0) {
-            mealSelect.innerHTML = "<option value=''>No meals available</option>";
-        } else {
-            mealSelect.innerHTML = "<option value=''>Choose a meal...</option>" + 
-                mealsData.map(meal => `<option value="${meal.id}">${meal.name} ($${meal.price})</option>`).join("");
-        }
-    }
-
-    // Function to render the selected list
-    function renderSelectedList() {
-        if (!selectedList) return;
-        selectedList.innerHTML = "";
+    // --- OFFERS LOGIC ---
+    function initOffers(mealsData) {
+        console.log("🎨 initOffers called with initial meals:", mealsData ? mealsData.length : 0);
+        const mealSelect = document.getElementById("offerMealSelect");
+        const addMealBtn = document.getElementById("addMealToOfferBtn");
+        const selectedList = document.getElementById("selectedMealsList");
+        const offerImageInput = document.getElementById("offerImage");
+        const offerForm = document.getElementById("addOfferForm");
+        const submitBtn = document.getElementById("btnSubmitOffer");
         
-        tempSelectedMealIds.forEach(id => {
-            const meal = mealsData.find(m => m.id === id);
-            if (meal) {
-                const li = document.createElement("li");
-                li.className = "list-group-item d-flex justify-content-between align-items-center";
-                li.innerHTML = `
-                    ${meal.name}
-                    <button type="button" class="btn btn-sm btn-danger remove-meal-btn" data-id="${id}">
-                        <i class="fa-solid fa-times"></i>
-                    </button>
-                `;
-                selectedList.appendChild(li);
+        // Internal state for selected logic
+        let tempSelectedMealIds = [];
+
+        // 1. Define the update function
+        function updateMealsDropdown(currentMeals) {
+            console.log("🔄 updating meals dropdown with", currentMeals.length, "meals");
+            if (mealSelect) {
+                if (!currentMeals || currentMeals.length === 0) {
+                    mealSelect.innerHTML = "<option value=''>No meals available</option>";
+                } else {
+                    // Start with default option
+                    let options = "<option value=''>Choose a meal...</option>";
+                    // Append meal options
+                    options += currentMeals.map(meal => `<option value="${meal.id}">${meal.name} ($${meal.price})</option>`).join("");
+                    mealSelect.innerHTML = options;
+                }
             }
-        });
-
-        // Attach remove listeners
-        document.querySelectorAll(".remove-meal-btn").forEach(btn => {
-            btn.addEventListener("click", function() {
-                const idToRemove = parseInt(this.dataset.id);
-                tempSelectedMealIds = tempSelectedMealIds.filter(id => id !== idToRemove);
-                renderSelectedList();
-            });
-        });
-    }
-
-    // Function to load and render existing offers
-    function loadOffers() {
-        try {
-            const savedOffers = localStorage.getItem("restaurantOffers");
-            return savedOffers ? JSON.parse(savedOffers) : [];
-        } catch (e) {
-            console.error("Error loading offers:", e);
-            return [];
+            // Also refresh internal reference if needed, but currentMeals are passed by value/ref so strict reliance is better
+            mealsData = currentMeals; 
         }
-    }
 
-    function saveOffers(offers) {
-        localStorage.setItem("restaurantOffers", JSON.stringify(offers));
-    }
+        // Initialize Dropdown Immediately
+        updateMealsDropdown(mealsData);
 
-    function renderExistingOffers() {
-        const offersList = document.getElementById("offersList");
-        if (!offersList) return;
-        
-        const currentOffers = loadOffers();
-        offersList.innerHTML = currentOffers.map(offer => `
-            <div class="col-md-6 mb-3">
-                <div class="card p-2 h-100 shadow-sm">
-                    <div class="d-flex align-items-center">
-                        <img src="${offer.image}" alt="${offer.title}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;" class="me-3">
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">${offer.title}</h5>
-                            <small class="text-muted d-block">${offer.discount}</small>
-                            <small class="text-danger d-block">Ends: ${offer.deadline || 'No deadline'}</small>
-                        </div>
-                        <button class="btn btn-outline-danger btn-sm delete-offer-btn" data-id="${offer.id}">
-                            <i class="fa-solid fa-trash"></i>
+        // 2. Render Selected List
+        function renderSelectedList() {
+            if (!selectedList) return;
+            selectedList.innerHTML = "";
+            
+            tempSelectedMealIds.forEach(id => {
+                // Find from latest mealsData
+                const meal = mealsData.find(m => m.id === id);
+                if (meal) {
+                    const li = document.createElement("li");
+                    li.className = "list-group-item d-flex justify-content-between align-items-center";
+                    li.innerHTML = `
+                        ${meal.name}
+                        <button type="button" class="btn btn-sm btn-danger remove-meal-btn" data-id="${id}">
+                            <i class="fa-solid fa-times"></i>
                         </button>
+                    `;
+                    selectedList.appendChild(li);
+                }
+            });
+
+            // Attach remove listeners
+            document.querySelectorAll(".remove-meal-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const idToRemove = parseInt(this.dataset.id);
+                    tempSelectedMealIds = tempSelectedMealIds.filter(id => id !== idToRemove);
+                    renderSelectedList();
+                });
+            });
+        }
+
+        // 3. Load & Render Offers
+        function loadOffers() {
+            try {
+                const savedOffers = localStorage.getItem("restaurantOffers");
+                return savedOffers ? JSON.parse(savedOffers) : [];
+            } catch (e) {
+                console.error("Error loading offers:", e);
+                return [];
+            }
+        }
+
+        function saveOffers(offers) {
+            localStorage.setItem("restaurantOffers", JSON.stringify(offers));
+        }
+
+        function renderExistingOffers() {
+            const offersList = document.getElementById("offersList");
+            if (!offersList) return;
+            
+            const currentOffers = loadOffers();
+            
+            if (currentOffers.length === 0) {
+                 offersList.innerHTML = '<p class="text-muted text-center col-12">No active offers.</p>';
+                 return;
+            }
+
+            offersList.innerHTML = currentOffers.map(offer => `
+                <div class="col-md-6 mb-3">
+                    <div class="card p-2 h-100 shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <img src="${offer.image}" alt="${offer.title}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;" class="me-3">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">${offer.title}</h5>
+                                <small class="text-muted d-block">${offer.discount}</small>
+                                <small class="text-danger d-block">Ends: ${offer.deadline || 'No deadline'}</small>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm delete-offer-btn" data-id="${offer.id}">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join("");
+            `).join("");
 
-        // Attach event listeners for delete buttons
-        document.querySelectorAll(".delete-offer-btn").forEach(btn => {
-            btn.addEventListener("click", function() {
-                const offerId = parseInt(this.dataset.id);
-                if (confirm("Are you sure you want to delete this offer?")) {
-                    let offers = loadOffers();
-                    offers = offers.filter(o => o.id !== offerId);
-                    saveOffers(offers);
-                    renderExistingOffers();
-                    showNotification("🗑️ Offer deleted successfully");
-                }
-            });
-        });
-    }
-
-    // Initialize list
-    renderExistingOffers();
-
-    // Remove old listeners if any by cloning (simple trick) or just rely on fresh init if script reloads?
-    // Since we are in an event listener, we should be careful about duplicate listeners if this function is called multiple times.
-    // Ideally, we handle the button click listener carefully.
-    
-    // Handle "Add Meal to Offer" button click
-    // To prevent duplicate listeners, we can use a flag or just replace the node locally, but simpler to just ensure this run once.
-    // We will assume initOffers is called once per page load.
-    
-    if (addMealBtn && mealSelect) {
-        // Remove old listener if exists (not easy without reference), but assuming fresh load:
-        addMealBtn.onclick = function() { // use onclick to overwrite
-            const selectedId = parseInt(mealSelect.value);
-            if (!selectedId) return;
-
-            if (tempSelectedMealIds.includes(selectedId)) {
-                alert("Meal already added to this offer!");
-                return;
-            }
-
-            tempSelectedMealIds.push(selectedId);
-            renderSelectedList();
-            mealSelect.value = ""; // Reset dropdown
-        };
-    }
-
-    // Offer Image Preview
-    if (offerImageInput) {
-        offerImageInput.onchange = function(e) {
-             const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById("offerImagePreview");
-                    if(preview) {
-                        preview.src = e.target.result;
-                        preview.style.display = "block";
+            // Attach event listeners for delete buttons
+            document.querySelectorAll(".delete-offer-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const offerId = parseInt(this.dataset.id);
+                    if (confirm("Are you sure you want to delete this offer?")) {
+                        let offers = loadOffers();
+                        offers = offers.filter(o => o.id !== offerId);
+                        saveOffers(offers);
+                        renderExistingOffers();
+                        showNotification("🗑️ Offer deleted successfully");
                     }
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-    }
+                });
+            });
+        }
 
-    // Handle Offer Submit
-    // Handle Offer Submit (Refactored to Button Click)
-    // Handle Offer Submit (Refactored to Button Click)
-    const offerForm = document.getElementById("addOfferForm");
-    const submitBtn = document.getElementById("btnSubmitOffer");
-    console.log("👉 btnSubmitOffer found?", !!submitBtn);
+        renderExistingOffers();
 
-    // Prevent default form submission (e.g. on Enter key)
-    if (offerForm) {
-        offerForm.onsubmit = function(e) {
-            e.preventDefault();
-            console.log("🛑 Form submit default prevented");
-        };
-    }
+        // 4. Attach Static Listeners (ONLY ONCE)
+        
+        // Add Meal to Offer Button
+        if (addMealBtn && mealSelect) {
+            // Use onclick to ensure we don't stack listeners if init is called again (though we designed around that)
+            addMealBtn.onclick = function() { 
+                const selectedId = parseInt(mealSelect.value);
+                if (!selectedId) return;
 
-    if (submitBtn) {
-        submitBtn.onclick = function(e) {
-            console.log("🖱️ Add Offer Button Clicked!");
-            e.preventDefault();
-            
-            try {
-                const title = document.getElementById("offerTitle").value;
-                const discount = document.getElementById("offerDiscount").value;
-                const deadline = document.getElementById("offerDeadline").value;
-                const imageInput = document.getElementById("offerImage");
-                
-                console.log("📝 Form Values:", { title, discount, deadline, meals: tempSelectedMealIds.length });
-
-                // Validation
-                if (!imageInput.files || !imageInput.files[0]) {
-                     alert("Please select an offer image.");
-                     return;
-                }
-                const imageFile = imageInput.files[0];
-
-                if (tempSelectedMealIds.length === 0) {
-                    alert("Please select at least one meal for this offer (click the + button).");
+                if (tempSelectedMealIds.includes(selectedId)) {
+                    alert("Meal already added to this offer!");
                     return;
                 }
 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const newOffer = {
-                        id: Date.now(),
-                        title: title,
-                        discount: discount,
-                        deadline: deadline,
-                        mealIds: tempSelectedMealIds,
-                        image: e.target.result
+                tempSelectedMealIds.push(selectedId);
+                renderSelectedList();
+                mealSelect.value = ""; 
+            };
+        }
+
+        // Image Preview
+        if (offerImageInput) {
+            offerImageInput.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById("offerImagePreview");
+                        if(preview) {
+                            preview.src = e.target.result;
+                            preview.style.display = "block";
+                        }
                     };
+                    reader.readAsDataURL(file);
+                }
+            };
+        }
 
-                    const currentOffers = loadOffers();
-                    currentOffers.push(newOffer);
-                    saveOffers(currentOffers);
+        // Submit Button
+        if (offerForm) {
+            offerForm.onsubmit = function(e) {
+                e.preventDefault();
+            };
+        }
 
-                    // Reset
-                    if (offerForm) offerForm.reset();
-                    tempSelectedMealIds = []; 
-                    renderSelectedList();
-                    renderExistingOffers();
+        if (submitBtn) {
+            submitBtn.onclick = function(e) {
+                e.preventDefault();
+                
+                try {
+                    const title = document.getElementById("offerTitle").value;
+                    const discount = document.getElementById("offerDiscount").value;
+                    const deadline = document.getElementById("offerDeadline").value;
                     
-                    const preview = document.getElementById("offerImagePreview");
-                    if(preview) preview.style.display = "none";
-                    
-                    showNotification("✅ Offer added successfully!");
-                    console.log("✅ Offer Added:", newOffer);
-                };
-                reader.onerror = function(err) {
-                    console.error("❌ FileReader error:", err);
-                    alert("Error reading image file");
-                };
-                reader.readAsDataURL(imageFile);
-            } catch (err) {
-                console.error("❌ Error in Add Offer handler:", err);
-                alert("An error occurred while adding the offer. Check console.");
-            }
-        };
-    } else {
-        console.error("❌ btnSubmitOffer NOT FOUND in DOM");
+                    if (!title || !discount || !deadline) {
+                        alert("Please fill in all offer details");
+                        return;
+                    }
+
+                    const imageInput = document.getElementById("offerImage");
+                    if (!imageInput.files || !imageInput.files[0]) {
+                        alert("Please select an offer image.");
+                        return;
+                    }
+                    const imageFile = imageInput.files[0];
+
+                    if (tempSelectedMealIds.length === 0) {
+                        alert("Please select at least one meal for this offer.");
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const newOffer = {
+                            id: Date.now(),
+                            title: title,
+                            discount: discount,
+                            deadline: deadline,
+                            mealIds: tempSelectedMealIds,
+                            image: e.target.result
+                        };
+
+                        try {
+                            const currentOffers = loadOffers();
+                            currentOffers.push(newOffer);
+                            saveOffers(currentOffers);
+
+                            // Reset
+                            if (offerForm) offerForm.reset();
+                            tempSelectedMealIds = []; 
+                            renderSelectedList();
+                            renderExistingOffers();
+                            
+                            const preview = document.getElementById("offerImagePreview");
+                            if(preview) preview.style.display = "none";
+                            
+                            showNotification("✅ Offer added successfully!");
+                        } catch (err) {
+                             if (err.name === "QuotaExceededError" || err.message.includes("quota")) {
+                                 alert("❌ Storage Full! Offer image might be too large. Try a smaller image or delete old items.");
+                                 // Rollback
+                                 currentOffers.pop();
+                             } else {
+                                 console.error(err);
+                                 alert("❌ Error saving offer: " + err.message);
+                             }
+                        }
+                    };
+                    reader.readAsDataURL(imageFile);
+                } catch (err) {
+                    console.error("❌ Add Offer Error:", err);
+                    alert("An error occurred. Check console.");
+                }
+            };
+        }
+
+        // Return the update function so we can call it from outside
+        return updateMealsDropdown;
     }
-}
 
 // --- GALLERY MANAGEMENT ---
 function initGalleryHooks() {
@@ -653,10 +695,14 @@ function initDashboard() {
 }
 
 function renderCharts(bookings) {
+     if (!bookings) bookings = [];
+
      // 1. Prepare Data for Trends (Bookings per Day)
     const bookingsByDate = {};
     bookings.forEach(b => {
-        bookingsByDate[b.date] = (bookingsByDate[b.date] || 0) + 1;
+        if (b.date) {
+            bookingsByDate[b.date] = (bookingsByDate[b.date] || 0) + 1;
+        }
     });
 
     const sortedDates = Object.keys(bookingsByDate).sort();
@@ -665,7 +711,7 @@ function renderCharts(bookings) {
     // 2. Prepare Data for Party Size
     const bookingsBySize = { '2': 0, '3': 0, '4': 0, '5': 0 };
     bookings.forEach(b => {
-        if (bookingsBySize[b.size] !== undefined) {
+        if (b.size && bookingsBySize[b.size] !== undefined) {
             bookingsBySize[b.size]++;
         }
     });
@@ -694,6 +740,12 @@ function renderCharts(bookings) {
                     y: {
                         beginAtZero: true,
                         ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: trendData.length === 0,
+                        text: 'No bookings data available'
                     }
                 }
             }
@@ -725,22 +777,34 @@ function renderCharts(bookings) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                         display: bookings.length === 0,
+                         text: 'No data'
+                    }
+                }
             }
         });
     }
 
-    // 3. Prepare Data for Top Selling Meals (Mock logic from before)
-     const ordersRaw = localStorage.getItem("restaurantOrders");
-     const orders = ordersRaw ? JSON.parse(ordersRaw) : [];
+    // 3. Prepare Data for Top Selling Meals
+    let orders = [];
+    try {
+        const ordersRaw = localStorage.getItem("restaurantOrders");
+        if (ordersRaw) orders = JSON.parse(ordersRaw);
+    } catch (e) {
+        console.error("Error loading orders for stats:", e);
+    }
     
-    // ... logic for top selling ...
     const mealSales = {};
     orders.forEach(order => {
         if (order.items && Array.isArray(order.items)) {
             order.items.forEach(item => {
                 const itemName = item.name; 
-                mealSales[itemName] = (mealSales[itemName] || 0) + item.quantity;
+                if (itemName) {
+                    mealSales[itemName] = (mealSales[itemName] || 0) + (item.quantity || 1);
+                }
             });
         }
     });
@@ -772,6 +836,12 @@ function renderCharts(bookings) {
                     y: {
                         beginAtZero: true,
                         ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: topMealData.length === 0,
+                        text: 'No sales data available'
                     }
                 }
             }
