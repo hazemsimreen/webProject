@@ -62,7 +62,7 @@
 </a>
 
 
-                    <a href="menu.html" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3">Order Online</a>
+
                 </div>
             </div>
         </div>
@@ -81,8 +81,9 @@
                                         mollitia laborum quam quisquam esse error unde. Tempora ex doloremque, labore,
                                         sunt repellat dolore, iste magni quos nihil ducimus libero ipsam.
                                     </p>
-                                    <button class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3"
-                                        type="submit">Order Now</button>
+                                    <a href="#IndexMenu" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3">
+                                        Order Now
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -150,7 +151,7 @@
     </section>
     <section class="menu my-5">
         <div class="container">
-            <h2 class="menuHeader">Our Menu</h2>
+            <h2 class="menuHeader" id="IndexMenu">Our Menu</h2>
             <ul class="categories pb-3">
                 <li class="category px-4 py-1 active" data-filter="all">All</li>
                 <li class="category px-4 py-1 " data-filter="pizza">Pizza</li>
@@ -165,8 +166,11 @@
             </div>
             <div class="viewMore-btn">
 
-                <button class="btn btn-warning text-white rounded-pill mx-3 mt-4" type="submit">View
-                    More</button>
+                <button onclick="window.location.href='menu.html'"
+                        class="btn btn-warning text-white rounded-pill mx-3 mt-4"
+                        type="button">
+                    View More
+                </button>=
             </div>
         </div>
 
