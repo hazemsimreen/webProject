@@ -126,7 +126,7 @@
                 </div>
             </div>
 
-            <!-- Move carousel indicators here -->
+
             <div class="carousel-indicators">
                 <button type="button" data-bs-target="#carouselExampleSlidesOnly" data-bs-slide-to="0" class="active"
                     aria-current="true" aria-label="Slide 1"></button>
@@ -260,20 +260,23 @@
     </section>
     <section class="clints my-5">
         <div class="container">
+
             <h2 class="menuHeader text-center py-4">What Our Customers Say</h2>
+
+            <!-- ========== CAROUSEL ========== -->
             <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
                 <div class="carousel-inner">
 
                     <div class="carousel-item active">
                         <div id="reviewsRow" class="row justify-content-center">
 
-
-                        <div class="col-md-5 mb-3">
+                            <div class="col-md-5 mb-3">
                                 <div class="card bg-dark text-white">
-                                    <div class="card-body ">
-                                        <p class="card-text"> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                                            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-                                            ad minim veniam </p>
+                                    <div class="card-body">
+                                        <p class="card-text">
+                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                                            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                                        </p>
                                         <h6>Mike Hamell</h6>
                                         <p class="card-text">Great experience!</p>
                                     </div>
@@ -283,13 +286,13 @@
                                 </div>
                             </div>
 
-
                             <div class="col-md-5 mb-3">
                                 <div class="card bg-dark text-white">
                                     <div class="card-body">
-                                        <p class="card-text"> Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                                            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-                                            ad minim veniam .</p>
+                                        <p class="card-text">
+                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                                            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                                        </p>
                                         <h6>Moana Michell</h6>
                                         <p class="card-text">Great experience!</p>
                                     </div>
@@ -298,68 +301,79 @@
                                     <img src="./assets/image/client2.jpg" alt="Moana Michell">
                                 </div>
                             </div>
+
                         </div>
                     </div>
-
-
                 </div>
 
 
-                <div class="carousel-indicators mt-5">
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0"
-                        class="active" aria-current="true"><i class="fa-solid fa-angle-right"></i></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"></button>
 
 
+            </div>
+
+
+            <div class="d-flex justify-content-center gap-3 my-4">
+                <button id="openBtn" class="btn btn-warning text-white rounded-pill px-4 py-2">
+                    Add your Review
+                </button>
+
+                <button class="btn btn-dark px-4 py-2 rounded-pill" id="toggleRatingBtn">
+                    <i class="fa-solid fa-star me-2"></i> Add Rates
+                </button>
+            </div>
+
+            <div id="showingText" class="text-center" style="display: none;">
+                <textarea id="messageBox" class="w-75 p-3" placeholder="Write Your Honest Thoughts About us"></textarea>
+                <br>
+                <button id="doneReview" class="btn btn-warning text-white rounded-pill px-4 py-2 mt-3">
+                    Done
+                </button>
+            </div>
+
+            <!-- ========== RATING SECTION ========== -->
+            <section class="rating_section text-white text-center py-4">
+                <div class="container">
+
+                    <div id="ratingContent" style="display: none;">
+                        <h4 class="text-dark mb-3">⭐ Rate Us</h4>
+
+                        <div class="row justify-content-center">
+                            <div class="col-md-4 col-lg-3">
+                                <div class="rating-box p-3"
+                                     style="border: 2px solid rgba(0,0,0,0.2); border-radius: 15px; background-color: rgba(255,255,255,0.9);">
+
+                                    <h2 id="overallRating" class="fw-bold mb-2" style="color: #ff9800;">0.0</h2>
+
+                                    <div id="averageStars" class="mb-2" style="color: #ff9800; font-size: 1rem;">
+                                        <!-- Dynamic Star Icons -->
+                                    </div>
+
+                                    <p class="text-muted small mb-3"><span id="totalRatings">0</span> reviews</p>
+
+                                    <div class="user-rating-stars d-flex justify-content-center gap-1"
+                                         style="font-size: 1.5rem; cursor: pointer; color: #dcdcdc;">
+                                        <i class="fa-regular fa-star" data-value="1"></i>
+                                        <i class="fa-regular fa-star" data-value="2"></i>
+                                        <i class="fa-regular fa-star" data-value="3"></i>
+                                        <i class="fa-regular fa-star" data-value="4"></i>
+                                        <i class="fa-regular fa-star" data-value="5"></i>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
-                <button  id="openBtn" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3" type="submit">
-                    Add your Review </button>
+            </section>
 
-                <div  id="showingText">
-
-
-                    <textarea  id="messageBox"placeholder="Write Your Honest Thoughts About us "></textarea>
-
-                    <button id="doneReview" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-3" type="submit">
-                        done </button>
-
-            </div>
-            </div>
         </div>
     </section>
 
-  <!-- rating section -->
-  <section class="rating_section text-white text-center py-4" style="background: linear-gradient(135deg, #ffbe33 0%, #ff9800 100%);">
-    <div class="container">
-      <button class="btn btn-dark mb-3 px-4 py-2 rounded-pill" id="toggleRatingBtn">
-        <i class="fa-solid fa-star me-2"></i>Add Rates
-      </button>
-      
-      <div id="ratingContent" style="display: none;">
-        <h4 class="text-dark mb-3">⭐ Rate Us</h4>
-        <div class="row justify-content-center">
-          <div class="col-md-4 col-lg-3">
-            <div class="rating-box p-3" style="border: 2px solid rgba(0,0,0,0.2); border-radius: 15px; background-color: rgba(255,255,255,0.9);">
-              <h2 id="overallRating" class="fw-bold mb-2" style="color: #ff9800;">0.0</h2>
-              <div id="averageStars" class="mb-2" style="color: #ff9800; font-size: 1rem;">
-                  <!-- Average stars icons -->
-              </div>
-              <p class="text-muted small mb-3"><span id="totalRatings">0</span> reviews</p>
-              
-              <div class="user-rating-stars d-flex justify-content-center gap-1" style="font-size: 1.5rem; cursor: pointer; color: #dcdcdc;">
-                  <i class="fa-regular fa-star" data-value="1"></i>
-                  <i class="fa-regular fa-star" data-value="2"></i>
-                  <i class="fa-regular fa-star" data-value="3"></i>
-                  <i class="fa-regular fa-star" data-value="4"></i>
-                  <i class="fa-regular fa-star" data-value="5"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <!-- end rating section -->
+
+
+
+
 
     <footer class="footer_section bg-dark text-white text-center">
         <div class="container">
