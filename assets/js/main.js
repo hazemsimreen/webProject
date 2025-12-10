@@ -5,18 +5,67 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ============= LOAD MEALS FROM LOCALSTORAGE =============
   function loadMealsFromStorage() {
+    let savedMeals = localStorage.getItem("restaurantMeals");
+    
+    // Initialize defaults if empty
+    if (!savedMeals) {
+        const defaultMeals = [
+            {
+                id: 1,
+                name: "Delicious Pizza",
+                price: 20,
+                category: "pizza",
+                image: "./assets/image/f1.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+            {
+                id: 2,
+                name: "Delicious Burger",
+                price: 20,
+                category: "burger",
+                image: "./assets/image/f2.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+            {
+                id: 3,
+                name: "Delicious Pizza",
+                price: 20,
+                category: "pizza",
+                image: "./assets/image/f3.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+            {
+                id: 4,
+                name: "Delicious Pasta",
+                price: 20,
+                category: "pasta",
+                image: "./assets/image/f4.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+            {
+                id: 5,
+                name: "Delicious Fries",
+                price: 20,
+                category: "fries",
+                image: "./assets/image/f5.png",
+                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
+            },
+        ];
+        localStorage.setItem("restaurantMeals", JSON.stringify(defaultMeals));
+        savedMeals = JSON.stringify(defaultMeals);
+        console.log("💾 Default meals initialized in localStorage");
+    }
+
     // Skip rendering on index.html - looping-slider.js handles it
     if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
       console.log('📍 On index page - looping-slider.js will handle meal rendering');
       return;
     }
     
-    const savedMeals = localStorage.getItem("restaurantMeals");
-    if (savedMeals) {
-      const meals = JSON.parse(savedMeals);
-      renderMeals(meals);
-      console.log(`📦 Loaded ${meals.length} meals from localStorage`);
-    }
+    // For other pages (menu.html etc)
+    const meals = JSON.parse(savedMeals);
+    renderMeals(meals);
+    console.log(`📦 Loaded ${meals.length} meals from localStorage`);
   }
 
   // ============= RENDER MEALS =============
