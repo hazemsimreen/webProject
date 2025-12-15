@@ -78,9 +78,9 @@ label {
     margin-bottom: 5px;
 }
 
-input[type="email"],
-input[type="password"],
- input[type="username"]
+input[id="email"],
+input[id="password"],
+input[id="username"]
 
  {
     width: 100%;

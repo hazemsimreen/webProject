@@ -5,6 +5,8 @@
     <title>SignUp Login</title>
     <link rel="stylesheet" href="assets/css/SignUp.css">
 </head>
+
+
 <body>
 <div class="container">
     <div class="left-panel">
@@ -20,15 +22,15 @@
             <p class="welcome">Welcome to the Meals Engineers’s Sign Up system.<br>
                </p>
 
-            <form>
-                <label for="username">Username</label>
-                <input type="username" id="username" placeholder="username">
+            <form action="php/Register.php" method="post">
+                <label   for="username">Username</label>
+                <input  name="username" type="text" id="username" placeholder="username">
 
                 <label for="email">Email</label>
-                <input type="email" id="email" placeholder="error@inputbox.com">
+                <input name="email" type="email" id="email" placeholder="email@gmail.com">
 
                 <label for="password">Password</label>
-                <input type="password" id="password" placeholder="***********">
+                <input name="password" type="password" id="password" placeholder="***********">
 
                 <div class="captcha">
 
