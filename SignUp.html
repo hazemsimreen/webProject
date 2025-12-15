@@ -19,24 +19,27 @@
     <div class="right-panel">
         <div class="login-box">
             <h2>SignUp</h2>
-            <p class="welcome">Welcome to the Meals Engineers’s Sign Up system.<br>
+            <p class="welcome">Welcome to the Meals Engineers's Sign Up system.<br>
                </p>
+
+            <!-- Error Message Area -->
+            <div id="error-message" class="error-msg" style="display: none;"></div>
 
             <form action="php/Register.php" method="post">
                 <label   for="username">Username</label>
-                <input  name="username" type="text" id="username" placeholder="username">
+                <input  name="username" type="text" id="username" placeholder="username" required>
 
                 <label for="email">Email</label>
-                <input name="email" type="email" id="email" placeholder="email@gmail.com">
+                <input name="email" type="email" id="email" placeholder="email@gmail.com" required>
 
                 <label for="password">Password</label>
-                <input name="password" type="password" id="password" placeholder="***********">
+                <input name="password" type="password" id="password" placeholder="***********" required>
 
                 <div class="captcha">
 
                 </div>
 
-                <button type="submit" class="login-btn">Sign up</button>
+                <button  type="submit" class="sign-up-btn">Sign up</button>
 
                 <div class="social-login">
                     <p>Or Sign Up with</p>
@@ -51,16 +54,27 @@
                     </button>
 
                 </div>
-
-
-
-
-
-
-
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    // Check for error in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    
+    if (error) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.style.display = 'block';
+        
+        if (error === 'email_exists') {
+            errorDiv.textContent = 'This email is already registered. Please use a different email or login.';
+        } else if (error === 'invalid_email') {
+            errorDiv.textContent = 'Please enter a valid email address.';
+        }
+    }
+</script>
 </body>
 </html>
+

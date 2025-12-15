@@ -1,17 +1,17 @@
 <?php
 require_once 'config.php';
-header('Content-Type: application/json');
 
 // Check if form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
+    
     $username = isset($_POST['username']) ? trim($_POST['username']) : '';
     $email = isset($_POST['email']) ? trim($_POST['email']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
 
-    // Validate email - must USE the result
+    // Validate email
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo json_encode(array('success' => false, 'message' => 'Invalid email'));
+        // Redirect back with error
+        header('Location: ../SignUp.html?error=invalid_email');
         exit;
     }
 
@@ -20,9 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) 
-        {
-        echo json_encode(array('success' => false, 'message' => 'Email already registered'));
+    if ($result->num_rows > 0) {
+        // Email already exists - redirect back with error
+        header('Location: ../SignUp.html?error=email_exists');
         $stmt->close();
         $conn->close();
         exit;
@@ -31,13 +31,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $username, $email, $hashedPassword);
-    $stmt->execute();
+    // Find smallest available ID
+    $idQuery = $conn->query("SELECT MIN(t1.id + 1) as next_id 
+                             FROM users t1 
+                             LEFT JOIN users t2 ON t1.id + 1 = t2.id 
+                             WHERE t2.id IS NULL");
+    $idRow = $idQuery->fetch_assoc();
+    $nextId = $idRow['next_id'];
 
-    echo json_encode(array('success' => true, 'message' => 'Registration successful'));
+    if ($nextId === null) {
+        $checkEmpty = $conn->query("SELECT COUNT(*) as count FROM users");
+        $countRow = $checkEmpty->fetch_assoc();
+        $nextId = ($countRow['count'] == 0) ? 1 : null;
+    }
+
+    if ($nextId !== null) {
+        $stmt = $conn->prepare("INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("isss", $nextId, $username, $email, $hashedPassword);
+    } else {
+        $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $username, $email, $hashedPassword);
+    }
+    $stmt->execute();
 
     $stmt->close();
     $conn->close();
+
+    header('Location: ../index.html');
+    exit;
 }
 ?>
