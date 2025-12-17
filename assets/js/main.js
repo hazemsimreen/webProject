@@ -678,12 +678,13 @@ document.addEventListener("DOMContentLoaded", function () {
           5: 12
       };
       
-      const bookingForm = document.getElementById("bookingForm");
+      const bookingForm = document.getElementById("bookingForm"); //to php
       
       if (!bookingForm) return;
 
       // Load bookings
-      function getBookings() {
+      function getBookings()
+      {
           return JSON.parse(localStorage.getItem("restaurantBookings") || "[]");
       }
 

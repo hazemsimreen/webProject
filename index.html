@@ -204,7 +204,8 @@
 
             <div class="row justify-content-center">
                 <div class="col-md-6">
-                    <form id="bookingForm">
+
+                    <form action="php/Booking.php" method="post" id="bookingForm">
                         <div class="form-floating mb-3">
                             <input type="text" class="form-control" id="bookName" placeholder="Your Name" required>
                             <label for="bookName">Your Name</label>
@@ -224,29 +225,12 @@
                             <option value="4">4</option>
                             <option value="5">5</option>
                         </select>
+
                         <div class="mb-3">
-                            <label for="bookTime" class="form-label">Select Time (1 Hour Max)</label>
-                            <select class="form-select mb-3" id="bookTime" required>
-                                <option value="" selected disabled>Select Time...</option>
-                                <option value="10:00">10:00 AM - 11:00 AM</option>
-                                <option value="11:00">11:00 AM - 12:00 PM</option>
-                                <option value="12:00">12:00 PM - 01:00 PM</option>
-                                <option value="13:00">01:00 PM - 02:00 PM</option>
-                                <option value="14:00">02:00 PM - 03:00 PM</option>
-                                <option value="15:00">03:00 PM - 04:00 PM</option>
-                                <option value="16:00">04:00 PM - 05:00 PM</option>
-                                <option value="17:00">05:00 PM - 06:00 PM</option>
-                                <option value="18:00">06:00 PM - 07:00 PM</option>
-                                <option value="19:00">07:00 PM - 08:00 PM</option>
-                                <option value="20:00">08:00 PM - 09:00 PM</option>
-                                <option value="21:00">09:00 PM - 10:00 PM</option>
-                                <option value="22:00">10:00 PM - 11:00 PM</option>
-                            </select>
+                            <label for="bookDateTime" class="form-label">Select Date and Time</label>
+                            <input type="datetime-local" class="form-control" id="bookDateTime" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="bookDate" class="form-label">Select a Date</label>
-                            <input type="date" class="form-control" id="bookDate" required>
-                        </div>
+
                         <button class="btn btn-warning text-white rounded-pill px-5 py-2" type="submit">Book Now</button>
                     </form>
                 </div>
