@@ -1,171 +1,183 @@
 console.log("🚀 main.js loaded!");
 
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("✅ DOM Ready!");
+    console.log("✅ DOM Ready!");
 
-  // ============= LOAD MEALS FROM LOCALSTORAGE =============
-  function loadMealsFromStorage() {
-    let savedMeals = localStorage.getItem("restaurantMeals");
-    
-    // Initialize defaults if empty
-    if (!savedMeals) {
-        const defaultMeals = [
-            {
-                id: 1,
-                name: "Delicious Pizza",
-                price: 20,
-                category: "pizza",
-                image: "./assets/image/f1.png",
-                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-            },
-            {
-                id: 2,
-                name: "Delicious Burger",
-                price: 20,
-                category: "burger",
-                image: "./assets/image/f2.png",
-                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-            },
-            {
-                id: 3,
-                name: "Delicious Pizza",
-                price: 20,
-                category: "pizza",
-                image: "./assets/image/f3.png",
-                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-            },
-            {
-                id: 4,
-                name: "Delicious Pasta",
-                price: 20,
-                category: "pasta",
-                image: "./assets/image/f4.png",
-                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-            },
-            {
-                id: 5,
-                name: "Delicious Fries",
-                price: 20,
-                category: "fries",
-                image: "./assets/image/f5.png",
-                description: "Veniam debitis quaerat officiis quasi cupiditate quo, quisquam velit, magnam voluptatem repellendus sed eaque",
-            },
-        ];
-        localStorage.setItem("restaurantMeals", JSON.stringify(defaultMeals));
-        savedMeals = JSON.stringify(defaultMeals);
-        console.log("💾 Default meals initialized in localStorage");
+    let allMeals = [];
+    let filtersAttached = false;
+
+    // ============= LOAD MEALS FROM DATABASE =============
+    function loadMealsFromDB() {
+        // Skip rendering on index.html - looping-slider.js handles it
+        if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
+            console.log('📍 On index page - looping-slider.js will handle meal rendering');
+            return;
+        }
+
+        // Fetch meals from database
+        fetch("php/Meals.php?getMeals=1")
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Failed to fetch meals');
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.length === 0) {
+                    console.log("⚠️ No meals found in database");
+                    const menuContainer = document.querySelector(".menuContnts .row");
+                    if (menuContainer) {
+                        menuContainer.innerHTML = `
+                        <div class="col-12 text-center text-white py-5">
+                            <i class="fa-solid fa-utensils fa-3x mb-3"></i>
+                            <h3>No meals available</h3>
+                            <p>Check back soon for delicious meals!</p>
+                        </div>
+                    `;
+                    }
+                    return;
+                }
+
+                allMeals = data; // Store meals globally
+                renderMeals(data);
+
+                // Only attach filters once
+                if (!filtersAttached) {
+                    attachFilterListeners();
+                    filtersAttached = true;
+                }
+
+                console.log(`📦 Loaded ${data.length} meals from database`);
+            })
+            .catch(err => {
+                console.error("❌ Failed to load meals:", err);
+                const menuContainer = document.querySelector(".menuContnts .row");
+                if (menuContainer) {
+                    menuContainer.innerHTML = `
+                    <div class="col-12 text-center text-white py-5">
+                        <i class="fa-solid fa-exclamation-triangle fa-3x mb-3"></i>
+                        <h3>Failed to load meals</h3>
+                        <p>Please try again later.</p>
+                    </div>
+                `;
+                }
+            });
     }
 
-    // Skip rendering on index.html - looping-slider.js handles it
-    if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
-      console.log('📍 On index page - looping-slider.js will handle meal rendering');
-      return;
-    }
-    
-    // For other pages (menu.html etc)
-    const meals = JSON.parse(savedMeals);
-    renderMeals(meals);
-    console.log(`📦 Loaded ${meals.length} meals from localStorage`);
-  }
+    // ============= RENDER MEALS =============
+    function renderMeals(meals) {
+        const menuContainer = document.querySelector(".menuContnts .row");
+        if (!menuContainer) return;
 
-  // ============= RENDER MEALS =============
-  function renderMeals(meals) {
-    const menuContainer = document.querySelector(".menuContnts .row");
-    if (!menuContainer) return;
+        // Clear existing meals
+        menuContainer.innerHTML = "";
 
-    // Clear existing meals
-    menuContainer.innerHTML = "";
+        if (meals.length === 0) {
+            menuContainer.innerHTML = `
+                <div class="col-12 text-center text-white py-5">
+                    <i class="fa-solid fa-search fa-3x mb-3"></i>
+                    <h3>No meals found</h3>
+                    <p>Try adjusting your filters</p>
+                </div>
+            `;
+            return;
+        }
 
-    // Add all meals from localStorage
-    meals.forEach((meal) => {
-      const mealCard = `
+        // Add all meals from database
+        meals.forEach((meal) => {
+            const mealCard = `
         <div class="col menu-item" data-category="${meal.category}" data-id="${meal.id}">
-          <div class="card h-100 bg-dark">
-            <div class="cardImage">
-              <img src="${meal.image}" class="card-img-top" alt="${meal.name}">
+            <div class="card h-100 bg-dark">
+                <div class="cardImage">
+                    <img src="${meal.image}" class="card-img-top" alt="${meal.name}">
+                </div>
+                <div class="card-body bg-dark text-white py-3">
+                    <h5 class="card-title py-2">${meal.name}</h5>
+                    <p class="card-text">${meal.description}</p>
+                    <div class="cardFooter py-3">
+                        <h6>$${meal.price}</h6>
+                        <button type="button" class="cardIcon add-to-cart-btn">
+                            <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="card-body bg-dark text-white py-3">
-              <h5 class="card-title py-2">${meal.name}</h5>
-              <p class="card-text">${meal.description}</p>
-              <div class="cardFooter py-3">
-                <h6>$${meal.price}</h6>
-                <button type="button" class="cardIcon add-to-cart-btn">
-                  <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
-      `;
-      menuContainer.insertAdjacentHTML("beforeend", mealCard);
-    });
-    
-    // No need to re-attach listeners with Event Delegation!
-    attachFilterListeners();
-  }
-
-  // ============= MENU FILTER =============
-  // ============= MENU FILTER (Advanced) =============
-  function attachFilterListeners() {
-    const categoryButtons = document.querySelectorAll(".category");
-    const searchInput = document.getElementById("menuSearch");
-    const priceFilter = document.getElementById("priceFilter");
-
-    function applyFilters() {
-        const activeCategoryBtn = document.querySelector(".category.active");
-        const category = activeCategoryBtn ? activeCategoryBtn.getAttribute("data-filter") : "all";
-        
-        const searchText = searchInput ? searchInput.value.toLowerCase().trim() : "";
-        const maxPrice = priceFilter ? parseFloat(priceFilter.value) : 10000;
-
-        const menuItems = document.querySelectorAll(".menu-item");
-
-        menuItems.forEach((item) => {
-            const itemCategory = item.getAttribute("data-category");
-            
-            // Get Price (Remove $ and whitespace)
-            const priceEl = item.querySelector("h6");
-            const price = priceEl ? parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')) : 0;
-            
-            // Get Name
-            const titleEl = item.querySelector("h5.card-title");
-            const name = titleEl ? titleEl.textContent.toLowerCase() : "";
-
-            // Check conditions
-            const matchesCategory = category === "all" || itemCategory === category;
-            const matchesSearch = name.includes(searchText);
-            const matchesPrice = price <= maxPrice;
-
-            if (matchesCategory && matchesSearch && matchesPrice) {
-                item.style.display = "block"; // Show
-            } else {
-                item.style.display = "none"; // Hide
-            }
+        `;
+            menuContainer.insertAdjacentHTML("beforeend", mealCard);
         });
     }
 
-    // 1. Category Click
-    categoryButtons.forEach((button) => {
-      button.addEventListener("click", function () {
-        categoryButtons.forEach((btn) => btn.classList.remove("active"));
-        this.classList.add("active");
-        applyFilters();
-      });
-    });
+    function attachFilterListeners() {
+        const categoryButtons = document.querySelectorAll(".category");
+        const searchInput = document.getElementById("menuSearch");
+        const priceFilter = document.getElementById("priceFilter");
 
-    // 2. Search Input
-    if (searchInput) {
-        searchInput.addEventListener("input", applyFilters);
+        console.log("🔘 Attaching filters to", categoryButtons.length, "category buttons");
+
+        function applyFilters() {
+            const activeCategoryBtn = document.querySelector(".category.active");
+            const category = activeCategoryBtn ? activeCategoryBtn.getAttribute("data-filter") : "all";
+
+            const searchText = searchInput ? searchInput.value.toLowerCase().trim() : "";
+            const maxPrice = priceFilter ? parseFloat(priceFilter.value) : 10000;
+
+            console.log("🔍 Filtering - Category:", category, "Search:", searchText, "Max Price:", maxPrice);
+
+            // Filter from allMeals array instead of DOM manipulation
+            let filteredMeals = allMeals;
+
+            // Apply category filter
+            if (category !== "all") {
+                filteredMeals = filteredMeals.filter(meal => meal.category === category);
+            }
+
+            // Apply search filter
+            if (searchText) {
+                filteredMeals = filteredMeals.filter(meal =>
+                    meal.name.toLowerCase().includes(searchText)
+                );
+            }
+
+            // Apply price filter
+            if (maxPrice < 10000) {
+                filteredMeals = filteredMeals.filter(meal => parseFloat(meal.price) <= maxPrice);
+            }
+
+            // Re-render with filtered meals
+            renderMeals(filteredMeals);
+
+            console.log(`✅ Filtered: ${filteredMeals.length} of ${allMeals.length} meals`);
+        }
+
+        // 1. Category Click
+        categoryButtons.forEach((button) => {
+            button.addEventListener("click", function () {
+                console.log("📂 Category clicked:", this.getAttribute("data-filter"));
+                categoryButtons.forEach((btn) => btn.classList.remove("active"));
+                this.classList.add("active");
+                applyFilters();
+            });
+        });
+
+        // 2. Search Input
+        if (searchInput) {
+            searchInput.addEventListener("input", applyFilters);
+        }
+
+        // 3. Price Filter
+        if (priceFilter) {
+            priceFilter.addEventListener("change", applyFilters);
+        }
     }
 
-    // 3. Price Filter
-    if (priceFilter) {
-        priceFilter.addEventListener("change", applyFilters);
-    }
-  }
+    // START: Load meals from database
+    loadMealsFromDB();
 
-  // Initial filter setup
-  attachFilterListeners();
+
+
+
+
 
   // ============= REVIEWS SYSTEM =============
   const openBtn = document.getElementById("openBtn");
@@ -387,7 +399,7 @@ document.addEventListener("DOMContentLoaded", function () {
   updateCartCount();
 
   // Load meals from localStorage
-  loadMealsFromStorage();
+  loadMealsFromDB();
 
   // Add animations CSS
   const style = document.createElement("style");
@@ -441,28 +453,29 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // ============= OFFERS SYSTEM =============
-  function loadOffers() {
-    const savedOffers = localStorage.getItem("restaurantOffers");
-    const container = document.getElementById("offersContainer");
-    
-    if (savedOffers && container) {
-      // Clear existing offers
-      container.innerHTML = "";
+    // Load offers from database
+    // ============= OFFERS SYSTEM =============
+// Load offers from database
+    function loadOffers() {
+        const container = document.getElementById("offersContainer");
+        if (!container) return;
 
-      const offers = JSON.parse(savedOffers);
-      const today = new Date().toISOString().split('T')[0];
+        // Fetch offers from database (only active offers for customers)
+        fetch("php/Offers.php?getOffers=1")
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch offers');
+                return res.json();
+            })
+            .then(offers => {
+                container.innerHTML = "";
 
-      // Filter expired offers
-      const activeOffers = offers.filter(offer => !offer.deadline || offer.deadline >= today);
+                if (offers.length === 0) {
+                    container.innerHTML = "<p class='text-center text-white'>No special offers at the moment.</p>";
+                    return;
+                }
 
-      if (activeOffers.length === 0) {
-        container.innerHTML = "<p class='text-center text-white'>No special offers at the moment.</p>";
-        return;
-      }
-      
-      container.innerHTML = "";
-      activeOffers.forEach(offer => {
-        const card = `
+                offers.forEach(offer => {
+                    const card = `
           <div class="col-md-6 mb-4">
               <div class="card bg-dark p-3 h-100" style="max-width: 540px; margin: 0 auto; border: 2px solid #ffbe33; border-radius: 15px; overflow: hidden;">
                   <div class="row g-0 h-100 align-items-center">
@@ -481,8 +494,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                   data-title="${offer.title}"
                                   data-discount="${offer.discount}"
                                   data-meal-ids="${offer.mealIds.join(',') || ''}">
-                              <!-- Note: Removed data-image to save DOM/memory usage, will rely on ID lookup if needed, but for cart we need a strategy. 
-                                   Actually, for the cart item creation below, we won't store the image base64 string in the cart array anymore. -->
                                   Order Now <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
                               </button>
                           </div>
@@ -491,76 +502,95 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
           </div>
         `;
-        container.insertAdjacentHTML("beforeend", card);
-      });
+                    container.insertAdjacentHTML("beforeend", card);
+                });
 
-      // Attach listeners to new buttons
-      const offerBtns = document.querySelectorAll(".add-offer-btn");
-      offerBtns.forEach(btn => {
-        btn.addEventListener("click", function() {
-            const mealIds = this.dataset.mealIds.split(',').map(Number);
-            const offerId = this.dataset.id;
-            const offerTitle = this.dataset.title;
-            const offerDiscountStr = this.dataset.discount; // e.g., "20% off"
-            // const offerImage = this.dataset.image; // Optimization: Don't read huge string from data attribute
+                // Attach listeners to offer buttons
+                attachOfferListeners();
 
-            const allMeals = JSON.parse(localStorage.getItem("restaurantMeals") || "[]");
-            const includedMeals = [];
-            let originalTotalPrice = 0;
+                console.log(`✅ Loaded ${offers.length} offers from database`);
+            })
+            .catch(err => {
+                console.error("❌ Failed to load offers:", err);
+                container.innerHTML = "<p class='text-center text-white'>Failed to load offers. Please try again later.</p>";
+            });
+    }
 
-            mealIds.forEach(id => {
-                const meal = allMeals.find(m => m.id === id);
-                if (meal) {
-                    includedMeals.push(meal);
-                    originalTotalPrice += parseFloat(meal.price);
+
+    function attachOfferListeners() {
+        const offerBtns = document.querySelectorAll(".add-offer-btn");
+
+        offerBtns.forEach(btn => {
+            btn.addEventListener("click", async function() {
+                const mealIds = this.dataset.mealIds.split(',').map(Number);
+                const offerId = this.dataset.id;
+                const offerTitle = this.dataset.title;
+                const offerDiscountStr = this.dataset.discount;
+
+                // Fetch all meals to get details
+                try {
+                    const response = await fetch("php/Meals.php?getMeals=1");
+                    const allMeals = await response.json();
+
+                    const includedMeals = [];
+                    let originalTotalPrice = 0;
+
+                    mealIds.forEach(id => {
+                        const meal = allMeals.find(m => parseInt(m.id) === id);
+                        if (meal) {
+                            includedMeals.push(meal);
+                            originalTotalPrice += parseFloat(meal.price);
+                        }
+                    });
+
+                    if (includedMeals.length === 0) {
+                        alert("Sorry, the meals in this offer are no longer available.");
+                        return;
+                    }
+
+                    // Calculate Discount
+                    let discountPercent = 0;
+                    const discountMatch = offerDiscountStr.match(/(\d+)%/);
+                    if (discountMatch) {
+                        discountPercent = parseInt(discountMatch[1]);
+                    }
+
+                    const finalPrice = originalTotalPrice * (1 - discountPercent / 100);
+
+                    // Create Offer Cart Item
+                    const offerItem = {
+                        id: `offer-${offerId}`,
+                        offerId: parseInt(offerId),
+                        name: offerTitle,
+                        price: parseFloat(finalPrice.toFixed(2)),
+                        description: `Includes: ${includedMeals.map(m => m.name).join(", ")}`,
+                        category: "offer",
+                        type: "offer",
+                        originalPrice: originalTotalPrice,
+                        discount: offerDiscountStr
+                    };
+
+                    addToCart(offerItem);
+
+                    // Visual feedback
+                    const originalText = this.innerHTML;
+                    this.textContent = `Added!`;
+                    this.classList.replace("btn-warning", "btn-success");
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.replace("btn-success", "btn-warning");
+                    }, 2000);
+                } catch (error) {
+                    console.error("Error adding offer to cart:", error);
+                    alert("Failed to add offer to cart. Please try again.");
                 }
             });
-
-            if (includedMeals.length === 0) {
-               alert("Sorry, the meals in this offer are no longer available.");
-               return;
-            }
-
-            // Calculate Discount
-            let discountPercent = 0;
-            const discountMatch = offerDiscountStr.match(/(\d+)%/);
-            if (discountMatch) {
-                discountPercent = parseInt(discountMatch[1]);
-            }
-            
-            const finalPrice = originalTotalPrice * (1 - discountPercent / 100);
-
-            // Create Offer Cart Item - OPTIMIZED: No image data stored
-            const offerItem = {
-                id: `offer-${offerId}`, // Use string ID to differentiate
-                offerId: parseInt(offerId), // Store original numeric ID for lookup
-                name: offerTitle,
-                price: parseFloat(finalPrice.toFixed(2)),
-                // image: offerImage, // REMOVED to fix QuotaExceededError
-                description: `Includes: ${includedMeals.map(m => m.name).join(", ")}`,
-                category: "offer",
-                type: "offer",
-                originalPrice: originalTotalPrice, 
-                discount: offerDiscountStr
-            };
-
-            addToCart(offerItem);
-
-            // Visual feedback
-            const originalText = this.innerHTML;
-            this.textContent = `Added!`;
-            this.classList.replace("btn-warning", "btn-success");
-            setTimeout(() => {
-                this.innerHTML = originalText;
-                this.classList.replace("btn-success", "btn-warning");
-            }, 2000);
         });
-      });
     }
-  }
 
-  loadOffers();
-  
+// Call loadOffers when page loads
+    loadOffers();
+
   // ============= RATING SYSTEM =============
   function initRatingSystem() {
       const ratingKey = "restaurantRatings";

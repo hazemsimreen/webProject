@@ -4,341 +4,134 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
+    <title>Our Menu</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+          integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="./assets/css/main.css">
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="#">Meals Engineers</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">Meals Engineers</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-
-                <ul class="navbar-nav mx-auto ps-5">
-
-                    <li class="nav-item mx-2">
-                        <a class="nav-link text-white" href="index.html">HOME</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link text-white active" href="menu.html">MENU</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link text-white" href="about.html">ABOUT</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link text-white" href="book.html">BOOK TABLE</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link text-white" href="orders.html">MY ORDERS</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link text-white" href="loyalty.html">REWARDS</a>
-                    </li>
-                    <li class="nav-item mx-2">
-                        <a class="nav-link text-white" href="gallery.html">GALLERY</a>
-                    </li>
-                </ul>
-                <div>
-                    <a href="login.html" >
-
-                        <i class="fa-solid fa-user text-white mx-1 "></i>
-                    </a>
-                    <a href="cart.html">
-                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                    </a>
-
-                </div>
-            </div>
-        </div>
-    </nav>
-   
-    <section class="menu my-5">
-        <div class="container">
-            <h2 class="menuHeader">Our Menu</h2>
-            
-            <!-- SEARCH & FILTER BAR -->
-            <div class="row mb-4 justify-content-center">
-                <div class="col-md-6 mb-2">
-                    <input type="text" id="menuSearch" class="form-control rounded-pill px-4" placeholder="🔍 Search for Burger, Pizza...">
-                </div>
-                <div class="col-md-4 mb-2">
-                    <select id="priceFilter" class="form-select rounded-pill px-4">
-                        <option value="1000">Filter by Price (All)</option>
-                        <option value="10">Under $10</option>
-                        <option value="15">Under $15</option>
-                        <option value="20">Under $20</option>
-                        <option value="25">Under $25</option>
-                    </select>
-                </div>
-            </div>
-
-            <ul class="categories pb-3">
-                <li class="category px-4 py-1 active" data-filter="all">All</li>
-                <li class="category px-4 py-1 " data-filter="pizza">Pizza</li>
-                <li class="category px-4 py-1 " data-filter="burger">Burger</li>
-                <li class="category  px-4 py-1 " data-filter="fries">Fries</li>
-                <li class="category  px-4 py-1 " data-filter="pasta">Pasta</li>
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mx-auto ps-5">
+                <li class="nav-item mx-2"><a class="nav-link text-white" href="index.html">HOME</a></li>
+                <li class="nav-item mx-2"><a class="nav-link text-white active" href="menu.html">MENU</a></li>
+                <li class="nav-item mx-2"><a class="nav-link text-white" href="about.html">ABOUT</a></li>
+                <li class="nav-item mx-2"><a class="nav-link text-white" href="book.html">BOOK TABLE</a></li>
+                <li class="nav-item mx-2"><a class="nav-link text-white" href="orders.html">MY ORDERS</a></li>
+                <li class="nav-item mx-2"><a class="nav-link text-white" href="loyalty.html">REWARDS</a></li>
+                <li class="nav-item mx-2"><a class="nav-link text-white" href="gallery.html">GALLERY</a></li>
             </ul>
-            <div class="menuContnts">
-                <div class="row row-cols-1 row-cols-md-3 g-4">
-                    <div class="col menu-item" data-category="pizza">
-                        <div class="card h-100 bg-dark">
-                            <div class="cardImage">
-                                <img src="./assets/image/f1.png" class="card-img-top" alt="...">
-                            </div>
-                            <div class="card-body bg-dark text-white py-3">
-                                <h5 class="card-title py-2">Delicious Pizza</h5>
-                                <p class="card-text">Veniam debitis quaerat officiis quasi cupiditate quo, quisquam
-                                    velit, magnam voluptatem repellendus sed eaque</p>
-                                <div class="cardFooter py-3">
-                                    <h6> $20 </h6>
-                                    <a href="#" class="cardIcon">
-                                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="col menu-item" data-category="burger">
-                        <div class="card h-100 bg-dark">
-                            <div class="cardImage">
-                                <img src="./assets/image/f2.png" class="card-img-top" alt="...">
-                            </div>
-                            <div class="card-body bg-dark text-white py-3">
-                                <h5 class="card-title py-2">Delicious Burger</h5>
-                                <p class="card-text">Veniam debitis quaerat officiis quasi cupiditate quo, quisquam
-                                    velit, magnam voluptatem repellendus sed eaque</p>
-                                <div class="cardFooter py-3">
-                                    <h6> $20 </h6>
-                                    <a href="#" class="cardIcon">
-                                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col menu-item" data-category="pizza">
-                        <div class="card h-100 bg-dark">
-                            <div class="cardImage">
-                                <img src="./assets/image/f3.png" class="card-img-top" alt="...">
-                            </div>
-                            <div class="card-body bg-dark text-white py-3">
-                                <h5 class="card-title py-2">Delicious Pizza</h5>
-                                <p class="card-text">Veniam debitis quaerat officiis quasi cupiditate quo, quisquam
-                                    velit, magnam voluptatem repellendus sed eaque</p>
-                                <div class="cardFooter py-3">
-                                    <h6> $20 </h6>
-                                    <a href="#" class="cardIcon">
-                                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col menu-item" data-category="pasta">
-                        <div class="card h-100 bg-dark">
-                            <div class="cardImage">
-                                <img src="./assets/image/f4.png" class="card-img-top" alt="...">
-                            </div>
-                            <div class="card-body bg-dark text-white py-3">
-                                <h5 class="card-title py-2">Delicious Pasta</h5>
-                                <p class="card-text">Veniam debitis quaerat officiis quasi cupiditate quo, quisquam
-                                    velit, magnam voluptatem repellendus sed eaque</p>
-                                <div class="cardFooter py-3">
-                                    <h6> $20 </h6>
-                                    <a href="#" class="cardIcon">
-                                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col menu-item" data-category="fries">
-                        <div class="card h-100 bg-dark">
-                            <div class="cardImage">
-                                <img src="./assets/image/f5.png" class="card-img-top" alt="...">
-                            </div>
-                            <div class="card-body bg-dark text-white py-3">
-                                <h5 class="card-title py-2">Delicious Fries</h5>
-                                <p class="card-text">Veniam debitis quaerat officiis quasi cupiditate quo, quisquam
-                                    velit, magnam voluptatem repellendus sed eaque</p>
-                                <div class="cardFooter py-3">
-                                    <h6> $20 </h6>
-                                    <a href="#" class="cardIcon">
-                                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col menu-item" data-category="pizza">
-                        <div class="card h-100 bg-dark">
-                            <div class="cardImage">
-                                <img src="./assets/image/f6.png" class="card-img-top" alt="...">
-                            </div>
-                            <div class="card-body bg-dark text-white py-3">
-                                <h5 class="card-title py-2">Delicious Pizza</h5>
-                                <p class="card-text">Veniam debitis quaerat officiis quasi cupiditate quo, quisquam
-                                    velit, magnam voluptatem repellendus sed eaque</p>
-                                <div class="cardFooter py-3">
-                                    <h6> $20 </h6>
-                                    <a href="#" class="cardIcon">
-                                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col menu-item" data-category="burger">
-                        <div class="card h-100 bg-dark">
-                            <div class="cardImage">
-                                <img src="./assets/image/f7.png" class="card-img-top" alt="...">
-                            </div>
-                            <div class="card-body bg-dark text-white py-3">
-                                <h5 class="card-title py-2">Tasty burger</h5>
-                                <p class="card-text">Veniam debitis quaerat officiis quasi cupiditate quo, quisquam
-                                    velit, magnam voluptatem repellendus sed eaque</p>
-                                <div class="cardFooter py-3">
-                                    <h6> $20 </h6>
-                                    <a href="#" class="cardIcon">
-                                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col menu-item" data-category="burger">
-                        <div class="card h-100 bg-dark">
-                            <div class="cardImage">
-                                <img src="./assets/image/f8.png" class="card-img-top" alt="...">
-                            </div>
-                            <div class="card-body bg-dark text-white py-3">
-                                <h5 class="card-title py-2">Delicious Burger</h5>
-                                <p class="card-text">Veniam debitis quaerat officiis quasi cupiditate quo, quisquam
-                                    velit, magnam voluptatem repellendus sed eaque</p>
-                                <div class="cardFooter py-3">
-                                    <h6> $20 </h6>
-                                    <a href="#" class="cardIcon">
-                                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col menu-item" data-category="pasta">
-                        <div class="card h-100 bg-dark">
-                            <div class="cardImage">
-                                <img src="./assets/image/f9.png" class="card-img-top" alt="...">
-                            </div>
-                            <div class="card-body bg-dark text-white py-3">
-                                <h5 class="card-title py-2">Delicious Pasta</h5>
-                                <p class="card-text">Veniam debitis quaerat officiis quasi cupiditate quo, quisquam
-                                    velit, magnam voluptatem repellendus sed eaque</p>
-                                <div class="cardFooter py-3">
-                                    <h6> $20 </h6>
-                                    <a href="#" class="cardIcon">
-                                        <i class="fa-solid fa-cart-shopping text-white mx-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-
-
-                        </div>
-                    </div>
-                </div>
-
-
+            <div>
+                <a href="login.html"><i class="fa-solid fa-user text-white mx-1"></i></a>
+                <a href="cart.html"><i class="fa-solid fa-cart-shopping text-white mx-1"></i></a>
             </div>
-            <div class="viewMore-btn">
+        </div>
+    </div>
+</nav>
 
-                <button class="btn btn-warning text-white rounded-pill mx-3 mt-4" type="submit">View
-                    More</button>
+<!-- MENU SECTION -->
+<section class="menu my-5">
+    <div class="container">
+        <h2 class="menuHeader">Our Menu</h2>
+
+        <!-- SEARCH & FILTER -->
+        <div class="row mb-4 justify-content-center">
+            <div class="col-md-6 mb-2">
+                <input type="text" id="menuSearch" class="form-control rounded-pill px-4"
+                       placeholder="🔍 Search for Burger, Pizza...">
+            </div>
+            <div class="col-md-4 mb-2">
+                <select id="priceFilter" class="form-select rounded-pill px-4">
+                    <option value="1000">Filter by Price (All)</option>
+                    <option value="10">Under $10</option>
+                    <option value="15">Under $15</option>
+                    <option value="20">Under $20</option>
+                    <option value="25">Under $25</option>
+                </select>
             </div>
         </div>
 
-    </section>
+        <!-- CATEGORY FILTER -->
+        <ul class="categories pb-3">
+            <li class="category px-4 py-1 active" data-filter="all">All</li>
+            <li class="category px-4 py-1" data-filter="pizza">Pizza</li>
+            <li class="category px-4 py-1" data-filter="burger">Burger</li>
+            <li class="category px-4 py-1" data-filter="fries">Fries</li>
+            <li class="category px-4 py-1" data-filter="pasta">Pasta</li>
+        </ul>
 
-   
-  
-  
-
-
-    <footer class="footer_section bg-dark text-white text-center">
-        <div class="container">
-            <div class="row">
-
-                <div class="col-md-4 p-3">
-                    <h4 class="mainHeader py-3">Contact Us</h4>
-                    <div class="theFather d-flex flex-column align-items-center">
-
-                        <a class="nav-link d-flex align-items-center text-white py-2" href="#">
-                            <i class="fa-solid fa-location-dot pe-3"></i>
-                            <span>Location</span>
-                        </a>
-                        <a class="nav-link d-flex align-items-center text-white py-2" href="#">
-                            <i class="fa-solid fa-phone pe-3"></i>
-                            <span>Call +01 1234567890</span>
-                        </a>
-                        <a class="nav-link d-flex align-items-center text-white py-2" href="#">
-                            <i class="fa-solid fa-envelope pe-3"></i>
-                            <span>demo@gmail.com</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="col-md-4 text-white p-3">
-                    <h4 class="mainHeader py-3">Meals Engineers</h4>
-                    <p class=" d-flex align-items-center text-white py-2">Necessary, making this the first true
-                        generator on the Internet. It uses a dictionary of over 200
-                        Latin words, combined with</p>
-                    <div class="icons">
-                        <i class="fa-brands fa-facebook"></i>
-                        <i class="fa-brands fa-linkedin"></i>
-                        <i class="fa-brands fa-instagram"></i>
-                        <i class="fa-brands fa-pinterest"></i>
-                        <i class="fa-brands fa-twitter"></i>
-                    </div>
-                </div>
-                <div class="col-md-4 text-white p-3 ">
-                    <h4 class="mainHeader py-3">Opening Hours</h4>
-                    <p class="text-white py-2">Everyday</p>
-                    <p class="text-white py-2">10.00 AM - 10.00 PM</p>
-                </div>
-                <div class="row">
-                    <div class="col-12 text-white p-3 py-5">
-                        <p class="py-2"> © 2025 All Rights Reserved By Free Html Templates</p>
-                        <p class="text-white">© Distributed By ThemeWagon</p>
-                    </div>
-                </div>
-
+        <!-- MEALS CONTAINER -->
+        <div class="menuContnts">
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                <!-- Meals will be injected dynamically from main.js -->
             </div>
         </div>
-    </footer>
 
-    <script src="./assets/js/main.js"> </script>
+        <!-- VIEW MORE BUTTON -->
+        <div class="viewMore-btn text-center mt-4">
+            <button class="btn btn-warning text-white rounded-pill">View More</button>
+        </div>
+    </div>
+</section>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+<!-- FOOTER -->
+<footer class="footer_section bg-dark text-white text-center">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 p-3">
+                <h4 class="mainHeader py-3">Contact Us</h4>
+                <div class="theFather d-flex flex-column align-items-center">
+                    <a class="nav-link d-flex align-items-center text-white py-2" href="#"><i
+                            class="fa-solid fa-location-dot pe-3"></i><span>Location</span></a>
+                    <a class="nav-link d-flex align-items-center text-white py-2" href="#"><i
+                            class="fa-solid fa-phone pe-3"></i><span>Call +01 1234567890</span></a>
+                    <a class="nav-link d-flex align-items-center text-white py-2" href="#"><i
+                            class="fa-solid fa-envelope pe-3"></i><span>demo@gmail.com</span></a>
+                </div>
+            </div>
+            <div class="col-md-4 text-white p-3">
+                <h4 class="mainHeader py-3">Meals Engineers</h4>
+                <p class="d-flex align-items-center text-white py-2">Necessary, making this the first true
+                    generator on the Internet.</p>
+                <div class="icons">
+                    <i class="fa-brands fa-facebook"></i>
+                    <i class="fa-brands fa-linkedin"></i>
+                    <i class="fa-brands fa-instagram"></i>
+                    <i class="fa-brands fa-pinterest"></i>
+                    <i class="fa-brands fa-twitter"></i>
+                </div>
+            </div>
+            <div class="col-md-4 text-white p-3">
+                <h4 class="mainHeader py-3">Opening Hours</h4>
+                <p class="text-white py-2">Everyday</p>
+                <p class="text-white py-2">10.00 AM - 10.00 PM</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 text-white p-3 py-5">
+                <p class="py-2">© 2025 All Rights Reserved By Free Html Templates</p>
+                <p class="text-white">© Distributed By ThemeWagon</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MAIN JS -->
+<script src="./assets/js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
 </body>
