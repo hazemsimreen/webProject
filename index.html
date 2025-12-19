@@ -205,20 +205,20 @@
             <div class="row justify-content-center">
                 <div class="col-md-6">
 
-                    <form action="php/Booking.php" method="post" id="bookingForm">
+                    <form  id="bookingForm">
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="bookName" placeholder="Your Name" required>
+                            <input name="name" type="text" class="form-control" id="bookName" placeholder="Your Name" required>
                             <label for="bookName">Your Name</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="bookPhone" placeholder="Phone Number" required>
+                            <input  name="phone" type="text" class="form-control" id="bookPhone" placeholder="Phone Number" required>
                             <label for="bookPhone">Phone Number</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="bookEmail" placeholder="Your Email" required>
+                            <input name="email" type="email" class="form-control" id="bookEmail" placeholder="Your Email" required>
                             <label for="bookEmail">Your Email</label>
                         </div>
-                        <select class="form-select form-select-lg mb-3" id="bookPersons" aria-label="How many persons" required>
+                        <select name="tableSize"  class="form-select form-select-lg mb-3" id="bookPersons" aria-label="How many persons" required>
                             <option value="" selected disabled> How many persons? </option>
                             <option value="2">2</option>
                             <option value="3">3</option>
@@ -228,7 +228,7 @@
 
                         <div class="mb-3">
                             <label for="bookDateTime" class="form-label">Select Date and Time</label>
-                            <input type="datetime-local" class="form-control" id="bookDateTime" required>
+                            <input name="date" type="datetime-local" class="form-control" id="bookDateTime" required>
                         </div>
 
                         <button class="btn btn-warning text-white rounded-pill px-5 py-2" type="submit">Book Now</button>

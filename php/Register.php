@@ -45,10 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nextId = ($countRow['count'] == 0) ? 1 : null;
     }
 
-    if ($nextId !== null) {
+    if ($nextId !== null)
+    {
         $stmt = $conn->prepare("INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)");
         $stmt->bind_param("isss", $nextId, $username, $email, $hashedPassword);
-    } else {
+    } else
+    {
         $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
         $stmt->bind_param("sss", $username, $email, $hashedPassword);
     }

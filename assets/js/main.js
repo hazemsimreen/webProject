@@ -269,18 +269,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function showNotification(message) {
+  function showNotification(message, type = 'success') {
     // Remove old notification if exists
     const oldNotification = document.querySelector(".cart-notification");
     if (oldNotification) oldNotification.remove();
 
     const notification = document.createElement("div");
     notification.className = "cart-notification";
+    
+    // Determine background color based on type
+    const bgColor = type === 'error' ? '#dc3545' : '#28a745'; // Red for error, Green for success
+
     notification.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
-      background: #28a745;
+      background: ${bgColor};
       color: white;
       padding: 15px 25px;
       border-radius: 8px;
@@ -296,7 +300,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => {
       notification.style.animation = "slideOut 0.3s ease";
       setTimeout(() => notification.remove(), 300);
-    }, 2000);
+    }, 3000);
   }
 
   function updateCartCount() {
@@ -698,101 +702,52 @@ document.addEventListener("DOMContentLoaded", function () {
   initRatingSystem();
 
   // ============= BOOKING SYSTEM =============
-  function initBookingSystem() {
-      // Constraints: 12 tables for each size (2, 3, 4, 5)
-      // TEST MODE: Limit 2-person tables to 1
-      const TABLE_LIMITS = {
-          2: 1, 
-          3: 12,
-          4: 12,
-          5: 12
-      };
-      
-      const bookingForm = document.getElementById("bookingForm"); //to php
-      
-      if (!bookingForm) return;
 
-      // Load bookings
-      function getBookings()
-      {
-          return JSON.parse(localStorage.getItem("restaurantBookings") || "[]");
-      }
+    ``
+function initBookingSystem()
+{
 
-      function saveBookings(bookings) {
-          localStorage.setItem("restaurantBookings", JSON.stringify(bookings));
-      }
 
-      // Check availability count for a specific date, time, and size
-      function getBookingCount(date, time, size) {
-          const bookings = getBookings();
-          return bookings.filter(b => b.date === date && b.time === time && parseInt(b.size) === parseInt(size)).length;
-      }
+    const bookingForm = document.getElementById("bookingForm");
 
-      // Find next available date for the SAME time
-      function findNextAvailableDate(startDate, time, size) {
-          let checkDate = new Date(startDate);
-          // Look ahead up to 30 days
-          for (let i = 1; i <= 30; i++) {
-              checkDate.setDate(checkDate.getDate() + 1);
-              const dateStr = checkDate.toISOString().split('T')[0];
-              const count = getBookingCount(dateStr, time, size);
-              if (count < TABLE_LIMITS[size]) {
-                  return dateStr;
-              }
-          }
-          return null; 
-      }
+    if (!bookingForm) return;
 
-      bookingForm.addEventListener("submit", function(e) {
-          e.preventDefault();
-          
-          const name = document.getElementById("bookName").value;
-          const phone = document.getElementById("bookPhone").value;
-          const email = document.getElementById("bookEmail").value;
-          const persons = parseInt(document.getElementById("bookPersons").value);
-          const date = document.getElementById("bookDate").value;
-          const time = document.getElementById("bookTime").value;
+    bookingForm.addEventListener("submit", function(e) {
+        e.preventDefault();
 
-          if (!persons || !date || !time) {
-              alert("Please select date, time, and number of persons.");
-              return;
-          }
+        const persons = parseInt(document.getElementById("bookPersons").value);
+        const datetime = document.getElementById("bookDateTime").value; // ✅ datetime-local
 
-          // Check Availability for specific slot
-          const limit = TABLE_LIMITS[persons];
-          const currentCount = getBookingCount(date, time, persons);
+        if (!persons || !datetime) {
+            showNotification("Please select date, time, and number of persons.", "error");
+            return;
+        }
 
-          if (currentCount >= limit) {
-              // Table not available for this time slot
-              const nextDate = findNextAvailableDate(date, time, persons);
-              let msg = `Sorry, no tables for ${persons} people available at ${time} on ${date}.`;
-              if (nextDate) {
-                  msg += `\nThe next available ${time} slot is on ${nextDate}.`;
-              } else {
-                  msg += `\nWe are fully booked at this time for the next month.`;
-              }
-              alert(msg);
-          } else {
-              // Available -> Book it
-              const bookings = getBookings();
-              bookings.push({
-                  id: Date.now(),
-                  name: name,
-                  phone: phone,
-                  email: email,
-                  size: persons,
-                  date: date,
-                  time: time
-              });
-              saveBookings(bookings);
-              
-              showNotification(`✅ Table booked for ${date} at ${time}!`);
-              bookingForm.reset();
-          }
-      });
-  }
+        // ✅ إرسال البيانات للـ PHP
+        const formData = new FormData(bookingForm);
 
-  initBookingSystem();
+        fetch('php/Booking.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification(data.message, 'success');
+                    bookingForm.reset();
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error submitting booking. Please try again.', 'error');
+                console.error('Error:', error);
+            });
+    });
+}
+
+initBookingSystem();
+
 
   // Toggle Rating Section
   const toggleRatingBtn = document.getElementById("toggleRatingBtn");

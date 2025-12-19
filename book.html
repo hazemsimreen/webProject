@@ -69,30 +69,30 @@
             <h2 class="mainHeader2 py-4">Book A Table</h2>
             <div class="row justify-content-center">
                 <div class="col-md-6">
-                    <form>
+                    <form id="bookingForm">
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="floatingInput" placeholder="Your Name">
+                            <input type="text" name="name" class="form-control" id="floatingInput" placeholder="Your Name" required>
                             <label for="floatingInput">Your Name</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="floatingPassword" placeholder="Phone Number">
+                            <input type="text" name="phone" class="form-control" id="floatingPassword" placeholder="Phone Number" required>
                             <label for="floatingPassword">Phone Number</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="floatingEmail" placeholder="Your Email">
+                            <input type="email" name="email" class="form-control" id="floatingEmail" placeholder="Your Email" required>
                             <label for="floatingPassword">Your Email</label>
                         </div>
-                        <select class="form-select form-select-lg mb-3" aria-label="Large select example">
-                            <option selected> How many persons? </option>
+                        <select name="tableSize" class="form-select form-select-lg mb-3" id="bookPersons" aria-label="Large select example" required>
+                            <option value="" selected disabled> How many persons? </option>
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="3">3</option>
-                            <option value="3">4</option>
-                            <option value="3">5</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
                         </select>
                         <div class="mb-3">
-                            <label for="dateInput" class="form-label">Select a Date</label>
-                            <input type="date" class="form-control" id="dateInput" required>
+                            <label for="bookDateTime" class="form-label">Select a Date</label>
+                            <input type="datetime-local" name="date" class="form-control" id="bookDateTime" required>
                         </div>
                         <button class="btn btn-warning text-white rounded-pill px-5 py-2" type="submit">Book
                             Now</button>

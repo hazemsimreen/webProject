@@ -1,6 +1,6 @@
 <?php
 require_once 'config.php';
-
+session_start();
 if($_SERVER['REQUEST_METHOD'] == 'POST')
 {
     $username = $_POST['username'];
@@ -14,13 +14,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
 
     if ($result->num_rows == 1)
     {
-        echo "username exists";
         $row = $result->fetch_assoc();
         $hashedPassword = $row["password"];
 
         if (password_verify($password, $hashedPassword))
         {
-            echo "upass exists";
+            $_SESSION['username'] = $username;
+            $_SESSION['role'] = $row['role'];
+            $_SESSION['id'] = $row['id'];
 
             if ($row["role"] == "admin")
             {
@@ -28,8 +29,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST')
                 exit();
             }
             else {
-                echo "it should  exists";
-
                 header("location: ../index.html");
                 exit();
             }
