@@ -617,17 +617,34 @@ function initGalleryManager() {
 }
 
 // --- ANALYTICS DASHBOARD ---
-function initDashboard() {
+async function initDashboard() {
     const dashboardContainer = document.getElementById("analyticsDashboard");
     if (!dashboardContainer) return;
 
+    console.log("📊 Initializing Dashboard Analytics...");
+
     try {
-        const bookings = JSON.parse(localStorage.getItem("restaurantBookings") || "[]");
-        // ... (Charts logic kept similar but wrapped)
-        
-        // Simplified for brevity in this rewrite, assuming Chart.js works
-        // The original logic was fine, just need to be inside DOMContentLoaded
-        renderCharts(bookings);
+        // Fetch bookings from database instead of localStorage
+        const response = await fetch("php/Booking.php?action=getAllBookings");
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            const bookings = result.data || [];
+            console.log(`📈 Received ${bookings.length} bookings from DB`);
+            
+            // Map DB fields to what renderCharts expects (if different)
+            // DB has: booking_date, party_size
+            // Mapping for consistency with existing renderCharts logic
+            const mappedBookings = bookings.map(b => ({
+                date: b.booking_date,
+                size: b.party_size.toString()
+            }));
+
+            renderCharts(mappedBookings);
+        } else {
+            console.error("❌ Failed to fetch bookings for analytics:", result.message);
+            dashboardContainer.innerHTML += `<div class="alert alert-danger mx-3">Error loading booking data: ${result.message}</div>`;
+        }
     } catch (e) {
         console.error("Dashboard error", e);
     }

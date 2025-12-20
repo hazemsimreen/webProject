@@ -7,15 +7,19 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("✅ DOM Ready!");
 
 
-    async function isUserLoggedIn() {
+    async function getSessionInfo() {
         try {
             const response = await fetch('php/check_session.php');
-            const data = await response.json();
-            return data.loggedIn;
+            return await response.json();
         } catch (error) {
             console.error('Error checking login status:', error);
-            return false;
+            return { loggedIn: false };
         }
+    }
+
+    async function isUserLoggedIn() {
+        const session = await getSessionInfo();
+        return session.loggedIn;
     }
 
     // ============= LOAD MEALS FROM DATABASE =============
@@ -300,7 +304,27 @@ document.addEventListener("DOMContentLoaded", function () {
   // ============= CART SYSTEM =============
   console.log("🛒 Loading cart system...");
 
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  let currentUserId = null;
+  let cart = [];
+
+  async function initCart() {
+      const session = await getSessionInfo();
+      if (session.loggedIn) {
+          currentUserId = session.id;
+          const cartKey = `cart_${currentUserId}`;
+          cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+          console.log(`📦 Loaded user-specific cart (${cartKey}):`, cart);
+      } else {
+          currentUserId = null;
+          cart = [];
+          console.log("📦 User not logged in, cart is empty");
+      }
+      updateCartCount();
+  }
+
+  function getCartKey() {
+      return currentUserId ? `cart_${currentUserId}` : "cart_guest";
+  }
 
   function addToCart(itemData) {
     console.log("➕ Adding to cart:", itemData);
@@ -319,7 +343,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-        localStorage.setItem("cart", JSON.stringify(cart));
+        localStorage.setItem(getCartKey(), JSON.stringify(cart));
         console.log("💾 Cart saved:", cart);
         updateCartCount();
     } catch (e) {
@@ -467,7 +491,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
   // Initialize cart count
-  updateCartCount();
+  initCart();
 
 
   loadMealsFromDB();

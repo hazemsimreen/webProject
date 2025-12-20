@@ -6,6 +6,30 @@ document.addEventListener("DOMContentLoaded", function() {
     const ordersContainer = document.getElementById("ordersContainer");
     const emptyState = document.getElementById("emptyState");
 
+    let currentUserId = null;
+
+    async function getSessionInfo() {
+        try {
+            const response = await fetch('php/check_session.php');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching session info:', error);
+            return { loggedIn: false };
+        }
+    }
+
+    function getCartKey() {
+        return currentUserId ? `cart_${currentUserId}` : "cart_guest";
+    }
+
+    async function initOrdersPage() {
+        const session = await getSessionInfo();
+        if (session.loggedIn) {
+            currentUserId = session.id;
+        }
+        loadOrders();
+    }
+
     // Load orders from database
     function loadOrders() {
         fetch(`php/Orders.php?getOrders=1`)
@@ -46,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         // Get current cart
-        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        let cart = JSON.parse(localStorage.getItem(getCartKey()) || "[]");
 
         // Add all items from the order to cart
         order.items.forEach(item => {
@@ -60,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Save updated cart
-        localStorage.setItem("cart", JSON.stringify(cart));
+        localStorage.setItem(getCartKey(), JSON.stringify(cart));
 
         showNotification(`✅ ${order.items.length} item(s) added to cart!`);
 
@@ -151,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // Initial load
-    loadOrders();
+    initOrdersPage();
 
     console.log("✅ Orders system ready!");
 });

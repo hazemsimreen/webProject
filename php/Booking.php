@@ -5,6 +5,7 @@ require_once 'config.php';
 
 header('Content-Type: application/json');
 
+// --- HANDLE POST: SUBMIT NEW BOOKING ---
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
     if (isset($_SESSION['id']) && $_SESSION['id'] != null) {
@@ -39,7 +40,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
             }
 
             $stmt->close();
-            $conn->close();
         } catch (Exception $e) {
              echo json_encode(["status" => "error", "message" => "Error processing booking: " . $e->getMessage()]);
         }
@@ -50,4 +50,33 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
         exit;
     }
 }
+
+// --- HANDLE GET: FETCH ALL BOOKINGS (ADMIN ONLY) ---
+if($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['action']) && $_GET['action'] == 'getAllBookings')
+{
+    // Admin Check
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+        echo json_encode(["status" => "error", "message" => "Unauthorized access."]);
+        exit;
+    }
+
+    try {
+        $sql = "SELECT * FROM bookings ORDER BY booking_date DESC, time_slot DESC";
+        $result = $conn->query($sql);
+        $bookings = [];
+
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $bookings[] = $row;
+            }
+        }
+
+        echo json_encode(["status" => "success", "data" => $bookings]);
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => "Error fetching bookings: " . $e->getMessage()]);
+    }
+    exit;
+}
+
+$conn->close();
 ?>

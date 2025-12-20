@@ -1,9 +1,37 @@
-console.log("🛒 Cart page loaded!");
+let currentUserId = null;
+let cart = [];
 
-// Load cart from localStorage
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+async function getSessionInfo() {
+  try {
+    const response = await fetch('php/check_session.php');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching session info:', error);
+    return { loggedIn: false };
+  }
+}
 
-console.log("📦 Cart items:", cart);
+function getCartKey() {
+  return currentUserId ? `cart_${currentUserId}` : "cart_guest";
+}
+
+async function initCartPage() {
+  console.log("🚀 Initializing cart page...");
+  const session = await getSessionInfo();
+  
+  if (session.loggedIn) {
+    currentUserId = session.id;
+    const cartKey = getCartKey();
+    cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+    console.log(`📦 Loaded user-specific cart (${cartKey}):`, cart);
+  } else {
+    currentUserId = null;
+    cart = [];
+    console.log("📦 User not logged in, showing empty cart");
+  }
+  
+  renderCart();
+}
 
 // Function to render cart items
 function renderCart() {
@@ -109,7 +137,7 @@ function changeQuantity(itemId, change) {
   }
 
   // Update localStorage
-  localStorage.setItem("cart", JSON.stringify(cart));
+  localStorage.setItem(getCartKey(), JSON.stringify(cart));
 
   // Update UI
   const qtyElement = document.getElementById(`qty-${itemId}`);
@@ -132,7 +160,7 @@ function removeItem(itemId) {
   if (confirm("Are you sure you want to remove this item?")) {
     console.log(`🗑️ Removing item ${itemId}`);
     cart = cart.filter((item) => item.id != itemId);
-    localStorage.setItem("cart", JSON.stringify(cart));
+    localStorage.setItem(getCartKey(), JSON.stringify(cart));
     renderCart();
   }
 }
@@ -176,8 +204,7 @@ function continueShopping() {
 
 // Initialize cart on page load
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🚀 Initializing cart page...");
-  renderCart();
+  initCartPage();
 });
 
 console.log("✅ Cart script loaded!");
