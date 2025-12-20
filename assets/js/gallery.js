@@ -1,4 +1,3 @@
-console.log("📸 Gallery page loaded!");
 
 document.addEventListener("DOMContentLoaded", function() {
     console.log("✅ DOM Ready - Gallery Page!");
@@ -6,126 +5,156 @@ document.addEventListener("DOMContentLoaded", function() {
     const photoUpload = document.getElementById("photoUpload");
     const photoGallery = document.getElementById("photoGallery");
     const emptyGallery = document.getElementById("emptyGallery");
-    const winnerAnnouncement = document.getElementById("winnerAnnouncement");
-    const winnerText = document.getElementById("winnerText");
+    const submitPhotoButton = document.getElementById("submitPhoto");
+    const photoCaptionInput = document.getElementById("photoCaption");
+    const captionModal = new bootstrap.Modal(document.getElementById('captionModal'));
+    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
 
-    // Load photos from localStorage
-    function getPhotos() {
-        return JSON.parse(localStorage.getItem("customerPhotos") || "[]");
+    let selectedFile = null;
+
+    // Helper to show notifications (copied from main.js style)
+    function showNotification(message, type = 'success') {
+        const oldNotification = document.querySelector(".cart-notification");
+        if (oldNotification) oldNotification.remove();
+
+        const notification = document.createElement("div");
+        notification.className = "cart-notification";
+        const bgColor = type === 'error' ? '#dc3545' : '#28a745';
+
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: ${bgColor};
+          color: white;
+          padding: 15px 25px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          z-index: 99999;
+          font-size: 16px;
+          font-weight: bold;
+          animation: slideIn 0.3s ease;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.style.animation = "slideOut 0.3s ease";
+          setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
 
-    // Save photos to localStorage
-    function savePhotos(photos) {
-        localStorage.setItem("customerPhotos", JSON.stringify(photos));
+    // Load photos from PHP
+    function loadPhotos() {
+        fetch('php/Gallery.php?action=getPhotos')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    renderGallery(data.photos);
+                } else {
+                    console.error("Error loading photos:", data.message);
+                }
+            })
+            .catch(err => console.error("Fetch error:", err));
     }
 
-    // Handle photo upload
+    // Initial load
+    loadPhotos();
+
+    // Check session and trigger upload
+    window.handleUploadClick = function() {
+        fetch('php/Gallery.php?action=checkSession')
+            .then(res => res.json())
+            .then(data => {
+                if (data.loggedIn) {
+                    photoUpload.click();
+                } else {
+                    loginModal.show();
+                }
+            })
+            .catch(err => {
+                console.error("Session check error:", err);
+                showNotification("❌ Error checking login status.", "error");
+            });
+    };
+
+    // Handle photo selection
     photoUpload.addEventListener("change", function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Check file size (max 2MB to avoid localStorage issues)
+        // Check file size (2MB)
         if (file.size > 2000000) {
-            alert("⚠️ Photo is too large! Please choose a photo under 2MB.");
+            showNotification("⚠️ Photo is too large! Please choose a photo under 2MB.", "error");
+            photoUpload.value = "";
             return;
         }
 
-        // Ask for caption
-        const caption = prompt("Add a caption for your photo (optional):", "");
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const photoData = {
-                id: Date.now(),
-                image: event.target.result,
-                caption: caption || "",
-                uploadedBy: "Customer", // Could be username if login system exists
-                uploadDate: new Date().toISOString(),
-                likes: 0,
-                likedBy: [] // Track who liked it
-            };
-
-            const photos = getPhotos();
-            photos.push(photoData);
-            savePhotos(photos);
-
-            alert("✅ Photo uploaded successfully!");
-            renderGallery();
-            photoUpload.value = ""; // Reset input
-        };
-
-        reader.readAsDataURL(file);
+        selectedFile = file;
+        captionModal.show();
     });
 
-    // Toggle like on a photo
-    function toggleLike(photoId) {
-        const photos = getPhotos();
-        const photo = photos.find(p => p.id === photoId);
-        
-        if (!photo) return;
+    // Submit photo with caption
+    submitPhotoButton.addEventListener("click", function() {
+        if (!selectedFile) return;
 
-        // Simple like toggle (in real app, would track by user ID)
-        const userId = "currentUser"; // Placeholder
-        const likedIndex = photo.likedBy.indexOf(userId);
+        const caption = photoCaptionInput.value.trim();
+        const formData = new FormData();
+        formData.append('photo', selectedFile);
+        formData.append('caption', caption);
 
-        if (likedIndex > -1) {
-            // Unlike
-            photo.likedBy.splice(likedIndex, 1);
-            photo.likes--;
-        } else {
-            // Like
-            photo.likedBy.push(userId);
-            photo.likes++;
-        }
+        submitPhotoButton.disabled = true;
+        submitPhotoButton.textContent = "Uploading...";
 
-        savePhotos(photos);
-        renderGallery();
-        checkForWinner();
-    }
+        fetch('php/Gallery.php?action=uploadPhoto', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification("✅ Photo uploaded successfully!");
+                captionModal.hide();
+                photoCaptionInput.value = "";
+                photoUpload.value = "";
+                loadPhotos();
+            } else {
+                showNotification("❌ " + data.message, "error");
+            }
+        })
+        .catch(err => {
+            console.error("Upload error:", err);
+            showNotification("❌ Error uploading photo.", "error");
+        })
+        .finally(() => {
+            submitPhotoButton.disabled = false;
+            submitPhotoButton.textContent = "Submit";
+        });
+    });
 
-    // Check if there's a winner (most likes)
-    function checkForWinner() {
-        const photos = getPhotos();
-        if (photos.length === 0) return;
+    // Toggle like
+    window.togglePhotoLike = function(photoId) {
+        const formData = new FormData();
+        formData.append('photoId', photoId);
 
-        // Find photo with most likes
-        const sortedPhotos = [...photos].sort((a, b) => b.likes - a.likes);
-        const topPhoto = sortedPhotos[0];
-
-        // Only award if photo has at least 5 likes
-        if (topPhoto.likes >= 5 && !topPhoto.awarded) {
-            // Award 20 loyalty points
-            const loyaltyData = JSON.parse(localStorage.getItem("loyaltyPoints") || '{"totalPoints": 0, "history": []}');
-            
-            loyaltyData.totalPoints += 20;
-            loyaltyData.history.push({
-                date: new Date().toISOString().split('T')[0],
-                photoId: topPhoto.id,
-                pointsEarned: 20,
-                type: "photo_winner"
-            });
-
-            localStorage.setItem("loyaltyPoints", JSON.stringify(loyaltyData));
-
-            // Mark as awarded
-            topPhoto.awarded = true;
-            savePhotos(photos);
-
-            // Show winner announcement
-            winnerText.textContent = `🎉 Photo with ${topPhoto.likes} likes won 20 loyalty points!`;
-            winnerAnnouncement.style.display = "block";
-
-            setTimeout(() => {
-                winnerAnnouncement.style.display = "none";
-            }, 5000);
-        }
-    }
+        fetch('php/Gallery.php?action=toggleLike', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                loadPhotos();
+            } else {
+                showNotification("⚠️ " + data.message, "error");
+            }
+        })
+        .catch(err => console.error("Like error:", err));
+    };
 
     // Render gallery
-    function renderGallery() {
-        const photos = getPhotos();
-
-        if (photos.length === 0) {
+    function renderGallery(photos) {
+        if (!photos || photos.length === 0) {
             photoGallery.style.display = "none";
             emptyGallery.style.display = "block";
             return;
@@ -135,19 +164,15 @@ document.addEventListener("DOMContentLoaded", function() {
         emptyGallery.style.display = "none";
         photoGallery.innerHTML = "";
 
-        // Sort by likes (most liked first)
-        const sortedPhotos = [...photos].sort((a, b) => b.likes - a.likes);
-        const topPhotoId = sortedPhotos[0]?.id;
+        const topPhotoId = photos[0]?.id; // Backend already sorts by likes
 
-        sortedPhotos.forEach(photo => {
-            const uploadDate = new Date(photo.uploadDate).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
+        photos.forEach(photo => {
+            const uploadDate = new Date(photo.created_at).toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
             });
 
-            const isLiked = photo.likedBy.includes("currentUser");
-            const isWinner = photo.id === topPhotoId && photo.likes >= 5;
+            const isLiked = photo.isLiked;
+            const isWinner = photo.id === topPhotoId && photo.likes_count >= 5;
 
             const photoCard = document.createElement("div");
             photoCard.className = "photo-card";
@@ -168,23 +193,22 @@ document.addEventListener("DOMContentLoaded", function() {
                                 <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
                             </button>
                             <div class="text-muted" style="font-size: 14px;">
-                                <strong>${photo.likes}</strong> ${photo.likes === 1 ? 'like' : 'likes'}
+                                <strong>${photo.likes_count}</strong> ${photo.likes_count === 1 ? 'like' : 'likes'}
                             </div>
                         </div>
                     </div>
                 </div>
             `;
-
             photoGallery.appendChild(photoCard);
         });
     }
 
-    // Expose toggle function globally
-    window.togglePhotoLike = toggleLike;
+    // Add animations styles for notification
+    const style = document.createElement("style");
+    style.textContent = `
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+    `;
+    document.head.appendChild(style);
 
-    // Initial render
-    renderGallery();
-    checkForWinner();
-
-    console.log("✅ Gallery system ready!");
 });

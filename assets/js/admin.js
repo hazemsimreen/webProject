@@ -449,139 +449,154 @@ function initGalleryHooks() {
 function initGalleryManager() {
     const galleryList = document.getElementById("galleryList");
     const deletedGalleryList = document.getElementById("deletedGalleryList");
-
-    // Load active photos
-    function loadGallery() {
-        try {
-            return JSON.parse(localStorage.getItem("customerPhotos") || "[]");
-        } catch (e) {
-            console.error("Error loading gallery:", e);
-            return [];
-        }
-    }
-
-    // Load deleted photos
-    function loadDeletedGallery() {
-        try {
-            return JSON.parse(localStorage.getItem("deletedCustomerPhotos") || "[]");
-        } catch (e) {
-            console.error("Error loading deleted gallery:", e);
-            return [];
-        }
-    }
-
-    // Save active photos
-    function saveGallery(photos) {
-        localStorage.setItem("customerPhotos", JSON.stringify(photos));
-    }
-
-    // Save deleted photos
-    function saveDeletedGallery(photos) {
-        localStorage.setItem("deletedCustomerPhotos", JSON.stringify(photos));
-    }
-
-    // Render Active Photos
-    function renderGalleryAdmin() {
-        if (!galleryList) return;
-        const photos = loadGallery();
-
-        if (photos.length === 0) {
-            galleryList.innerHTML = '<p class="text-muted text-center col-12">No photos in gallery.</p>';
-            return;
-        }
-
-        galleryList.innerHTML = photos.map(photo => `
-            <div class="col-md-3 col-sm-6 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <img src="${photo.image}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                    <div class="card-body p-2">
-                        <small class="text-muted d-block mb-1">By: ${photo.uploadedBy}</small>
-                        <p class="card-text small mb-2 text-truncate" title="${photo.caption || ''}">
-                            ${photo.caption || '<em>No caption</em>'}
-                        </p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-secondary"><i class="fa-solid fa-heart"></i> ${photo.likes}</span>
-                            <button class="btn btn-sm btn-danger delete-photo-btn" data-id="${photo.id}">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join("");
-
-        // Attach listeners
-        galleryList.querySelectorAll(".delete-photo-btn").forEach(btn => {
-            btn.addEventListener("click", function() {
-                const id = parseInt(this.dataset.id);
-                deletePhoto(id);
-            });
+    
+    // Modal elements
+    const deleteModalEl = document.getElementById('deletePhotoModal');
+    let deletePhotoModal = null;
+    if (deleteModalEl) {
+        deletePhotoModal = new bootstrap.Modal(deleteModalEl, {
+            keyboard: false
         });
     }
 
-    // Render Deleted Photos History
-    function renderDeletedGalleryAdmin() {
-        if (!deletedGalleryList) return;
-        const photos = loadDeletedGallery();
+    const confirmDeleteBtn = document.getElementById('confirmDeletePhotoBtn');
+    const deleteReasonInput = document.getElementById('deleteReason');
+    let currentPhotoIdToDelete = null;
 
-        if (photos.length === 0) {
-            deletedGalleryList.innerHTML = '<p class="text-muted text-center col-12">No deleted photos history.</p>';
-            return;
-        }
+    // Render Active Photos from DB
+    async function renderGalleryAdmin() {
+        if (!galleryList) return;
+        
+        try {
+            const response = await fetch("php/Gallery.php?action=getPhotos");
+            const data = await response.json();
+            
+            if (data.status !== 'success') {
+                galleryList.innerHTML = `<p class="text-danger text-center col-12">Error: ${data.message}</p>`;
+                return;
+            }
 
-        // Sort by deleted date descending
-        photos.sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
+            const photos = data.photos || [];
 
-        deletedGalleryList.innerHTML = photos.map(photo => `
-            <div class="col-md-3 col-sm-6 mb-4">
-                <div class="card h-100 shadow-sm border-danger" style="opacity: 0.8;">
-                    <img src="${photo.image}" class="card-img-top" style="height: 150px; object-fit: cover; filter: grayscale(100%);">
-                    <div class="card-body p-2">
-                         <span class="badge bg-danger mb-2">Deleted</span>
-                        <p class="card-text small mb-1 text-danger fw-bold">Note: ${photo.deleteReason}</p>
-                        <small class="text-muted d-block">Original Caption: ${photo.caption || 'None'}</small>
-                        <small class="text-muted d-block" style="font-size: 10px;">Deleted on: ${new Date(photo.deletedAt).toLocaleString()}</small>
+            if (photos.length === 0) {
+                galleryList.innerHTML = '<p class="text-muted text-center col-12">No photos in gallery.</p>';
+                return;
+            }
+
+            galleryList.innerHTML = photos.map(photo => `
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <img src="${photo.image}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                        <div class="card-body p-2">
+                            <small class="text-muted d-block mb-1">By: ${photo.uploadedBy || 'Unknown'}</small>
+                            <p class="card-text small mb-2 text-truncate" title="${photo.caption || ''}">
+                                ${photo.caption || '<em>No caption</em>'}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-secondary"><i class="fa-solid fa-heart"></i> ${photo.likes_count || 0}</span>
+                                <button class="btn btn-sm btn-danger delete-photo-btn" data-id="${photo.id}">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join("");
+            `).join("");
+
+        } catch (error) {
+            console.error("Error rendering gallery:", error);
+            galleryList.innerHTML = '<p class="text-danger text-center col-12">Failed to load gallery.</p>';
+        }
     }
 
-    // Delete Photo Logic
-    function deletePhoto(id) {
-        // 1. Prompt for reason
-        const reason = prompt("⚠️ Why are you deleting this photo? (This note will be saved)");
-        if (reason === null) return; // Cancelled
-        const finalReason = reason.trim() || "No reason provided";
+    // Render Deleted Photos History from DB
+    async function renderDeletedGalleryAdmin() {
+        if (!deletedGalleryList) return;
 
-        // 2. Move from active to deleted
-        const activePhotos = loadGallery();
-        const photoIndex = activePhotos.findIndex(p => p.id === id);
-        
-        if (photoIndex === -1) {
-            showNotification("❌ Photo not found!");
-            return;
+        try {
+            const response = await fetch("php/Gallery.php?action=getDeletedPhotos");
+            const data = await response.json();
+
+            if (data.status !== 'success') {
+                deletedGalleryList.innerHTML = `<p class="text-danger text-center col-12">Error: ${data.message}</p>`;
+                return;
+            }
+
+            const photos = data.photos || [];
+
+            if (photos.length === 0) {
+                deletedGalleryList.innerHTML = '<p class="text-muted text-center col-12">No deleted photos history.</p>';
+                return;
+            }
+
+            deletedGalleryList.innerHTML = photos.map(photo => `
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card h-100 shadow-sm border-danger" style="opacity: 0.8;">
+                        <img src="${photo.image}" class="card-img-top" style="height: 150px; object-fit: cover; filter: grayscale(100%);">
+                        <div class="card-body p-2">
+                             <span class="badge bg-danger mb-2">Deleted</span>
+                            <p class="card-text small mb-1 text-danger fw-bold">Note: ${photo.delete_reason || 'No reason provided'}</p>
+                            <small class="text-muted d-block">Original Caption: ${photo.caption || 'None'}</small>
+                            <small class="text-muted d-block" style="font-size: 10px;">Deleted on: ${photo.deleted_at ? new Date(photo.deleted_at).toLocaleString() : 'Date unknown'}</small>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+        } catch (error) {
+            console.error("Error rendering deleted gallery:", error);
+            deletedGalleryList.innerHTML = '<p class="text-danger text-center col-12">Failed to load deleted history.</p>';
         }
+    }
 
-        const photoToDelete = activePhotos[photoIndex];
-        
-        // Add metadata
-        photoToDelete.deletedAt = new Date().toISOString();
-        photoToDelete.deleteReason = finalReason;
+    // Use Event Delegation for Delete Buttons
+    if (galleryList) {
+        galleryList.addEventListener('click', function(e) {
+            const btn = e.target.closest('.delete-photo-btn');
+            if (btn) {
+                e.preventDefault();
+                const id = btn.getAttribute('data-id');
+                console.log("🗑️ Delete requested for ID:", id);
+                if (id) {
+                    currentPhotoIdToDelete = id;
+                    if (deleteReasonInput) deleteReasonInput.value = "";
+                    if (deletePhotoModal) deletePhotoModal.show();
+                }
+            }
+        });
+    }
 
-        // Save to deleted list
-        const deletedPhotos = loadDeletedGallery();
-        deletedPhotos.push(photoToDelete);
-        saveDeletedGallery(deletedPhotos);
+    // Confirm Delete Action
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', async function() {
+            if (!currentPhotoIdToDelete) return;
 
-        // Remove from active list
-        activePhotos.splice(photoIndex, 1);
-        saveGallery(activePhotos);
+            const reason = deleteReasonInput ? deleteReasonInput.value.trim() : "No reason provided";
+            console.log("Confirming delete for ID:", currentPhotoIdToDelete, "Reason:", reason);
 
-        // 3. Refresh UI
-        renderGalleryAdmin();
-        renderDeletedGalleryAdmin();
-        showNotification("🗑️ Photo deleted & archived.");
+            try {
+                const formData = new FormData();
+                formData.append("photoId", currentPhotoIdToDelete);
+                formData.append("reason", reason);
+
+                const response = await fetch("php/Gallery.php?action=deletePhoto", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    if (deletePhotoModal) deletePhotoModal.hide();
+                    showNotification("🗑️ Photo deleted & archived.");
+                    renderGalleryAdmin();
+                    renderDeletedGalleryAdmin();
+                } else {
+                    alert("❌ Error deleting photo: " + data.message);
+                }
+            } catch (error) {
+                console.error("Error deleting photo:", error);
+                alert("❌ Failed to delete photo. Check console.");
+            }
+        });
     }
 
     // Initial render

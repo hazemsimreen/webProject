@@ -262,44 +262,7 @@
             <!-- ========== CAROUSEL ========== -->
             <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
                 <div class="carousel-inner">
-
-                    <div class="carousel-item active">
-                        <div id="reviewsRow" class="row justify-content-center">
-
-                            <div class="col-md-5 mb-3">
-                                <div class="card bg-dark text-white">
-                                    <div class="card-body">
-                                        <p class="card-text">
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                                            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                                        </p>
-                                        <h6>Mike Hamell</h6>
-                                        <p class="card-text">Great experience!</p>
-                                    </div>
-                                </div>
-                                <div class="clintImage mt-3">
-                                    <img src="./assets/image/client1.jpg" alt="Mike Hamell">
-                                </div>
-                            </div>
-
-                            <div class="col-md-5 mb-3">
-                                <div class="card bg-dark text-white">
-                                    <div class="card-body">
-                                        <p class="card-text">
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                                            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                                        </p>
-                                        <h6>Moana Michell</h6>
-                                        <p class="card-text">Great experience!</p>
-                                    </div>
-                                </div>
-                                <div class="clintImage mt-3">
-                                    <img src="./assets/image/client2.jpg" alt="Moana Michell">
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
+                    <!-- Reviews will be dynamically loaded by main.js -->
                 </div>
 
 
@@ -313,9 +276,12 @@
                     Add your Review
                 </button>
 
-                <button class="btn btn-warning text-white rounded-pill px-4 py-2" id="toggleRatingBtn">
-    <i class="fa-solid fa-star me-2"></i> Add Rates
-</button>
+                <button class="btn btn-warning text-white rounded-pill px-4 py-2 d-flex align-items-center gap-2" id="toggleRatingBtn">
+                    <i class="fa-solid fa-star"></i>
+                    <span>Add Rates</span>
+                    <span id="avgRatingBadge" class="badge bg-white text-warning rounded-pill" style="display: none;">0.0</span>
+                </button>
+
             </div>
 
             <div id="showingText" class="text-center" style="display: none;">

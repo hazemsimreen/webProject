@@ -79,16 +79,11 @@
                 <h3 class="mb-3">Share Your Meal! 🍔</h3>
                 <p class="mb-4">Upload a photo of your favorite meal (max 2MB) and add a caption!</p>
                 <input type="file" id="photoUpload" accept="image/*" style="display: none;">
-                <button class="btn btn-light btn-lg rounded-pill px-5" onclick="document.getElementById('photoUpload').click()">
+                <button class="btn btn-light btn-lg rounded-pill px-5" onclick="window.handleUploadClick()">
                     <i class="fa-solid fa-camera me-2"></i>Upload Photo
                 </button>
             </div>
 
-            <!-- Winner Announcement -->
-            <div id="winnerAnnouncement" class="alert alert-success text-center" style="display: none;">
-                <h4>🎉 Congratulations!</h4>
-                <p id="winnerText"></p>
-            </div>
 
             <!-- Photo Grid -->
             <div class="gallery-grid" id="photoGallery">
@@ -102,6 +97,42 @@
             </div>
         </div>
     </section>
+
+    <!-- Photo Caption Modal -->
+    <div class="modal fade" id="captionModal" tabindex="-1" aria-labelledby="captionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="captionModalLabel">Add a Caption</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <textarea id="photoCaption" class="form-control" rows="3" placeholder="Tell us about this delicious meal..."></textarea>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="submitPhoto" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-2">Submit Photo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Required Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <div class="modal-body">
+                    <i class="fa-solid fa-user-lock fa-4x text-warning mb-3"></i>
+                    <h3 class="mb-3">Login Required</h3>
+                    <p>You must be logged in to share your photos and join our community!</p>
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-2" data-bs-dismiss="modal">Close</button>
+                        <button onclick="window.location.href='login.html'" class="btn btn-warning text-white rounded-pill px-4 py-2 mx-2">Login Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer class="footer_section bg-dark text-white text-center">
         <div class="container">

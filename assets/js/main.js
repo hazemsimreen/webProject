@@ -197,6 +197,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const doneBtn = document.getElementById("doneReview");
   const textArea = document.getElementById("messageBox");
   const showingText = document.getElementById("showingText");
+  const carouselInner = document.querySelector("#carouselExampleIndicators .carousel-inner");
+
+  // Clear local storage for reviews as requested
+  localStorage.removeItem("reviews");
+  localStorage.removeItem("userReviews"); // Just in case
 
   if (showingText) showingText.style.display = "none";
 
@@ -207,43 +212,90 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function loadReviews() {
+    if (!carouselInner) return;
+
+    fetch("php/Reviews.php")
+      .then(res => res.json())
+      .then(reviews => {
+        if (reviews.length === 0) {
+          carouselInner.innerHTML = `
+            <div class="carousel-item active">
+              <div class="row justify-content-center">
+                <div class="col-md-5 mb-3 text-center">
+                  <p class="text-white">No reviews yet. Be the first to add one!</p>
+                </div>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        carouselInner.innerHTML = "";
+        reviews.forEach((review, index) => {
+          const item = document.createElement("div");
+          item.classList.add("carousel-item");
+          if (index === 0) item.classList.add("active");
+
+          item.innerHTML = `
+            <div class="row justify-content-center">
+              <div class="col-md-6 mb-3">
+                <div class="card bg-dark text-white border-warning" style="border-radius: 15px;">
+                  <div class="card-body text-center p-4">
+                    <i class="fa fa-quote-left mb-3 text-warning" style="font-size: 2rem;"></i>
+                    <p class="card-text mb-3" style="font-style: italic;">"${review.review_text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}"</p>
+                    <h5 class="text-warning mb-1">${review.username}</h5>
+                    <p class="small text-muted">Customer</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          carouselInner.appendChild(item);
+        });
+      })
+      .catch(err => console.error("Error loading reviews:", err));
+  }
+
   if (doneBtn) {
     doneBtn.addEventListener("click", () => {
       const reviewText = textArea.value.trim();
       if (!reviewText) {
-        alert("Please write your review!");
+        showNotification("Please write your review!", "error");
         return;
       }
 
-      const carouselInner = document.querySelector(
-        "#carouselExampleIndicators .carousel-inner"
-      );
-      const newItem = document.createElement("div");
-      newItem.classList.add("carousel-item", "active");
-      newItem.innerHTML = `
-        <div class="row justify-content-center">
-          <div class="col-md-5 mb-3">
-            <div class="card bg-dark text-white">
-              <div class="card-body">
-                <p class="card-text">${reviewText
-                  .replace(/</g, "&lt;")
-                  .replace(/>/g, "&gt;")}</p>
-                <h6>Anonymous</h6>
-                <p class="card-text">New Review</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
+      const formData = new FormData();
+      formData.append("review_text", reviewText);
 
-      const activeItem = carouselInner.querySelector(".active");
-      if (activeItem) activeItem.classList.remove("active");
-
-      carouselInner.appendChild(newItem);
-      textArea.value = "";
-      showingText.style.display = "none";
+      fetch("php/Reviews.php", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          showNotification(data.message, "success");
+          textArea.value = "";
+          showingText.style.display = "none";
+          loadReviews(); // Reload from database
+        } else {
+          showNotification(data.message, "error");
+          if (data.message.includes("logged in")) {
+             // Optional: redirect to login
+             // window.location.href = "login.html";
+          }
+        }
+      })
+      .catch(err => {
+        console.error("Error saving review:", err);
+        showNotification("Failed to save review. Please try again.", "error");
+      });
     });
   }
+
+  // Initial load
+  loadReviews();
 
   // ============= CART SYSTEM =============
   console.log("🛒 Loading cart system...");
@@ -630,107 +682,142 @@ document.addEventListener("DOMContentLoaded", function () {
 // Call loadOffers when page loads
     loadOffers();
 
-  // ============= RATING SYSTEM =============
+  // ============= RATING SYSTEM (UNIFIED) =============
   function initRatingSystem() {
-      const ratingKey = "restaurantRatings";
-      
-      // Load Data or Default (mock data for initial impression)
-      let ratings = JSON.parse(localStorage.getItem(ratingKey));
-      
-      if (!ratings) {
-          ratings = [5, 4, 5, 5, 4]; // Default mock data
-          localStorage.setItem(ratingKey, JSON.stringify(ratings));
-      }
-      
-      // Calculate Average
-      function getStats() {
-          if (ratings.length === 0) return { average: 0, count: 0 };
-          const sum = ratings.reduce((a, b) => a + b, 0);
-          return {
-              average: (sum / ratings.length).toFixed(1),
-              count: ratings.length
-          };
-      }
-      
-      // Render UI
-      function renderUI() {
-          const stats = getStats();
-          const overallRatingEl = document.getElementById("overallRating");
-          const totalRatingsEl = document.getElementById("totalRatings");
-          const averageStarsEl = document.getElementById("averageStars");
-          
-          if (overallRatingEl) overallRatingEl.textContent = stats.average;
-          if (totalRatingsEl) totalRatingsEl.textContent = stats.count;
-          
-          // Render average stars
-          if (averageStarsEl) {
-              let starsHtml = "";
-              const fullStars = Math.floor(stats.average);
-              const hasHalf = stats.average % 1 >= 0.5;
-              
-              for (let i = 1; i <= 5; i++) {
-                  if (i <= fullStars) {
-                      starsHtml += '<i class="fa-solid fa-star"></i>';
-                  } else if (i === fullStars + 1 && hasHalf) {
-                      starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
-                  } else {
-                      starsHtml += '<i class="fa-regular fa-star"></i>';
-                  }
-              }
-              averageStarsEl.innerHTML = starsHtml;
-          }
-      }
-      
-      // Interactive Stars
-      const userStars = document.querySelectorAll(".user-rating-stars i");
-      const starContainer = document.querySelector(".user-rating-stars");
-      
-      if (starContainer) {
-          userStars.forEach(star => {
-              // Hover Effect
-              star.addEventListener("mouseover", function() {
-                  const val = this.dataset.value;
-                  highlightStars(val);
-              });
-              
-              // Click to Submit
-              star.addEventListener("click", function() {
-                  const val = parseInt(this.dataset.value);
-                  ratings.push(val);
-                  localStorage.setItem(ratingKey, JSON.stringify(ratings));
-                  renderUI();
-                  showNotification(`Thanks! You rated us ${val} stars ★`);
-                  
-                  // Reset aesthetics
-                  setTimeout(() => {
-                        highlightStars(0); 
-                  }, 1000);
-              });
-          });
-          
-          starContainer.addEventListener("mouseout", function() {
-              // Reset to empty
-              highlightStars(0);
-          });
-      }
-      
-      function highlightStars(count) {
-          userStars.forEach(s => {
-              const val = parseInt(s.dataset.value);
-              if (val <= count) {
-                  s.classList.remove("fa-regular");
-                  s.classList.add("fa-solid");
-                  s.style.color = "#ffbe33";
-              } else {
-                  s.classList.remove("fa-solid");
-                  s.classList.add("fa-regular");
-                  s.style.color = "#dcdcdc";
-              }
-          });
-      }
+    const toggleRatingBtn = document.getElementById("toggleRatingBtn");
+    const ratingContent = document.getElementById("ratingContent");
+    const overallRatingEl = document.getElementById("overallRating");
+    const totalRatingsEl = document.getElementById("totalRatings");
+    const averageStarsEl = document.getElementById("averageStars");
+    const avgRatingBadge = document.getElementById("avgRatingBadge");
+    const userStars = document.querySelectorAll(".user-rating-stars i");
+    const starContainer = document.querySelector(".user-rating-stars");
 
-      // Initial Render
-      renderUI();
+    // 1. Toggle Visibility
+    if (toggleRatingBtn && ratingContent) {
+      toggleRatingBtn.addEventListener("click", () => {
+        const isHidden = ratingContent.style.display === "none" || !ratingContent.style.display;
+        ratingContent.style.display = isHidden ? "block" : "none";
+        
+        if (isHidden) {
+          ratingContent.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    }
+
+    // 2. Fetch Average Rating from Database
+    function loadAverageRating() {
+      fetch('php/averageRatings.php')
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            if (overallRatingEl) overallRatingEl.textContent = data.average_rating;
+            if (totalRatingsEl) totalRatingsEl.textContent = data.total_ratings;
+            
+            // Update the badge next to the button
+            if (avgRatingBadge) {
+              avgRatingBadge.textContent = data.average_rating;
+              avgRatingBadge.style.display = "inline-block";
+            }
+
+            renderAverageStars(data.average_rating);
+          }
+        })
+        .catch(err => console.error('Error fetching average rating:', err));
+    }
+
+    // 3. Render Average Stars
+    function renderAverageStars(rating) {
+      if (!averageStarsEl) return;
+      
+      let starsHtml = "";
+      const fullStars = Math.floor(rating);
+      const hasHalf = (rating % 1) >= 0.5;
+
+      for (let i = 1; i <= 5; i++) {
+        if (i <= fullStars) {
+          starsHtml += '<i class="fa-solid fa-star"></i>';
+        } else if (i === fullStars + 1 && hasHalf) {
+          starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+        } else {
+          starsHtml += '<i class="fa-regular fa-star"></i>';
+        }
+      }
+      averageStarsEl.innerHTML = starsHtml;
+    }
+
+    // 4. Interactive Stars (Hover & Click)
+    if (starContainer && userStars.length > 0) {
+      userStars.forEach(star => {
+        // Hover effect to show potential rating
+        star.addEventListener("mouseover", function() {
+          highlightStars(this.dataset.value);
+        });
+
+        // Click to submit rating
+        star.addEventListener("click", function() {
+          const ratingValue = parseInt(this.dataset.value);
+          submitRating(ratingValue);
+          
+          // Close the rating section after clicking a star
+          if (ratingContent) {
+            setTimeout(() => {
+              ratingContent.style.display = "none";
+            }, 500); // Small delay to allow user to see the notification/stars
+          }
+        });
+      });
+
+      // Clear highlights when mouse leaves container
+      starContainer.addEventListener("mouseleave", () => {
+        highlightStars(0);
+      });
+    }
+
+    // 5. Highlight Stars Logic
+    function highlightStars(count) {
+      userStars.forEach(s => {
+        const val = parseInt(s.dataset.value);
+        if (val <= count) {
+          s.classList.replace("fa-regular", "fa-solid");
+          s.style.color = "#ffbe33";
+        } else {
+          s.classList.replace("fa-solid", "fa-regular");
+          s.style.color = "#dcdcdc";
+        }
+      });
+    }
+
+    // 6. Submit Rating to Backend
+    function submitRating(rating) {
+      const formData = new FormData();
+      formData.append('rating', rating);
+
+      fetch('php/Rating.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showNotification(data.message, 'success');
+          loadAverageRating(); // Refresh stats
+        } else {
+          showNotification(data.message, 'error');
+          if (data.message.includes("login")) {
+            // Optional: Redirect to login or show modal
+            console.log("User not logged in");
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Error submitting rating:', err);
+        showNotification('Something went wrong. Please try again.', 'error');
+      });
+    }
+
+    // Initial Load
+    loadAverageRating();
   }
 
   // Initialize Rating System
@@ -761,7 +848,8 @@ function initBookingSystem()
         // ✅ إرسال البيانات للـ PHP
         const formData = new FormData(bookingForm);
 
-        fetch('php/Booking.php', {
+        fetch('php/Booking.php',
+            {
             method: 'POST',
             body: formData
         })
@@ -895,21 +983,7 @@ function initBookingSystem()
 initBookingSystem();
 
 
-  // Toggle Rating Section
-  const toggleRatingBtn = document.getElementById("toggleRatingBtn");
-  const ratingContent = document.getElementById("ratingContent");
-  
-  if (toggleRatingBtn && ratingContent) {
-    toggleRatingBtn.addEventListener("click", function() {
-      if (ratingContent.style.display === "none") {
-        ratingContent.style.display = "block";
-        this.innerHTML = '<i class="fa-solid fa-times me-2"></i>Close';
-      } else {
-        ratingContent.style.display = "none";
-        this.innerHTML = '<i class="fa-solid fa-star me-2"></i>Add Rates';
-      }
-    });
-  }
+  // Cleanup: Remote duplicate definitions if any
 
   console.log("✅ Cart system ready!");
   console.log("✅ Meals loading system ready!");
