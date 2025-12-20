@@ -106,55 +106,46 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
 
                         if (pointsEarned > 0) {
-                            const loyaltyData = JSON.parse(localStorage.getItem("loyaltyPoints") || '{"totalPoints": 0, "history": []}');
-                            loyaltyData.totalPoints += pointsEarned;
-                            loyaltyData.history.push({
-                                date: new Date().toISOString().split('T')[0],
-                                orderId: data.orderId,
-                                orderTotal: total,
-                                pointsEarned: pointsEarned,
-                                type: "earned"
-                            });
-                            localStorage.setItem("loyaltyPoints", JSON.stringify(loyaltyData));
-                        }
+                            const formData = new FormData();
+                            formData.append("action", "award");
+                            formData.append("points", pointsEarned);
 
-                        // Clear Cart
-                        localStorage.removeItem("cart");
-
-                        // Show Success
-                        let successMessage = `✅ Order Placed Successfully!\n\nOrder ID: #${data.orderId}\nThank you, ${name}.\nYour total paid: $${total.toFixed(2)}`;
-                        if (pointsEarned > 0) {
-                            const loyaltyData = JSON.parse(localStorage.getItem("loyaltyPoints") || '{"totalPoints": 0}');
-                            successMessage += `\n\n🎁 You earned ${pointsEarned} loyalty points!\n💎 Total Points: ${loyaltyData.totalPoints}`;
-                            if (loyaltyData.totalPoints >= 80) {
-                                successMessage += `\n\n🎉 You can redeem a FREE meal!`;
-                            }
-                        }
-                        if (notes) {
-                            successMessage += `\n\nNotes: ${notes}`;
-                        }
-                        alert(successMessage);
-
-                        // Redirect to Orders page
-                        window.location.href = "orders.html";
-                    } else {
-                        alert("❌ Failed to place order: " + data.message);
-
-                        // Re-enable button
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = 'Place Order';
+                            fetch("php/Loyalty.php", {
+                                method: "POST",
+                                body: formData
+                            })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.status === "success") {
+                                        let successMessage = `✅ Order Placed Successfully!\n\nThank you, ${name}.\nYour total paid: $${total.toFixed(2)}`;
+                                        successMessage += `\n\n🎁 You earned ${pointsEarned} loyalty points!`;
+                                        alert(successMessage);
+                                        window.location.href = "index.html";
+                                    } else {
+                                        console.error("Failed to award points:", data.message);
+                                        alert(`✅ Order Placed Successfully!\n\nThank you, ${name}. Total: $${total.toFixed(2)}`);
+                                        window.location.href = "index.html";
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error("Error awarding points:", err);
+                                    alert(`✅ Order Placed Successfully!\n\nThank you, ${name}. Total: $${total.toFixed(2)}`);
+                                    window.location.href = "index.html";
+                                });
+                        } else {
+                            alert(`✅ Order Placed Successfully!\n\nThank you, ${name}.\nYour total paid: $${total.toFixed(2)}`);
+                            window.location.href = "index.html";
                         }
                     }
                 })
-                .catch(err => {
-                    console.error("Error placing order:", err);
-                    alert("❌ Failed to place order: " + err.message);
+                .catch(error => {
+                    console.error("❌ Error submitting order:", error);
+                    alert("Failed to place order. Please try again.");
 
-                    // Re-enable button
+                    // Re-enable submit button
                     if (submitBtn) {
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = 'Place Order';
+                        submitBtn.innerHTML = 'Complete Order';
                     }
                 });
         });
