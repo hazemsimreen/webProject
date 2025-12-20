@@ -14,13 +14,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Render Order Summary
     let subtotal = 0;
-    
+
     if (summaryList) {
         summaryList.innerHTML = "";
         cart.forEach(item => {
             const itemTotal = item.price * item.quantity;
             subtotal += itemTotal;
-            
+
             const li = document.createElement("li");
             li.className = "list-group-item d-flex justify-content-between lh-sm bg-dark text-white border-secondary";
             li.innerHTML = `
@@ -48,72 +48,115 @@ document.addEventListener("DOMContentLoaded", () => {
     if (form) {
         form.addEventListener("submit", (e) => {
             e.preventDefault();
-            
-            // Collect data (simulate processing)
-            const name = document.getElementById("fullName").value;
-            const phone = document.getElementById("phone").value;
-            const address = document.getElementById("address").value;
-            const notes = document.getElementById("orderNotes").value;
+
+            // Collect data
+            const name = document.getElementById("fullName").value.trim();
+            const phone = document.getElementById("phone").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const notes = document.getElementById("orderNotes").value.trim();
+            const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value || 'cash';
+
             console.log(`📦 Processing order for ${name} (${phone}) at: ${address}. Notes: ${notes}`);
-            
-            // --- SAVE ORDER TO HISTORY ---
-            const newOrder = {
-                id: Date.now(),
-                date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-                customer: { name, phone, address, notes },
-                items: cart, // Save the entire cart
-                total: total
-            };
 
-            const existingOrders = JSON.parse(localStorage.getItem("restaurantOrders") || "[]");
-            existingOrders.push(newOrder);
-            localStorage.setItem("restaurantOrders", JSON.stringify(existingOrders));
-            
-            // --- LOYALTY POINTS SYSTEM ---
-            let pointsEarned = 0;
-            if (total >= 20 && total < 40) {
-                pointsEarned = 5;
-            } else if (total >= 40) {
-                pointsEarned = 10;
+            // Disable submit button to prevent double submission
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
             }
 
-            if (pointsEarned > 0) {
-                // Load current loyalty data
-                const loyaltyData = JSON.parse(localStorage.getItem("loyaltyPoints") || '{"totalPoints": 0, "history": []}');
-                
-                // Add points
-                loyaltyData.totalPoints += pointsEarned;
-                loyaltyData.history.push({
-                    date: new Date().toISOString().split('T')[0],
-                    orderId: newOrder.id,
-                    orderTotal: total,
-                    pointsEarned: pointsEarned,
-                    type: "earned"
+            // Prepare form data
+            const formData = new FormData();
+            formData.append("createOrder", "1");
+            formData.append("fullName", name);
+            formData.append("phone", phone);
+            formData.append("address", address);
+            formData.append("orderNotes", notes);
+            formData.append("paymentMethod", paymentMethod);
+            formData.append("total", total.toFixed(2));
+            formData.append("items", JSON.stringify(cart));
+
+            // Submit order to database
+            fetch("php/Orders.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.text()) // Get as text first to see errors
+                .then(text => {
+                    console.log("📝 Server Response:", text);
+
+                    // Try to parse as JSON
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        console.error("❌ Server returned non-JSON response:", text);
+                        throw new Error("Server error: " + text.substring(0, 200));
+                    }
+
+                    if (data.success) {
+                        console.log("✅ Order saved to database, ID:", data.orderId);
+
+                        // --- LOYALTY POINTS SYSTEM ---
+                        let pointsEarned = 0;
+                        if (total >= 20 && total < 40) {
+                            pointsEarned = 5;
+                        } else if (total >= 40) {
+                            pointsEarned = 10;
+                        }
+
+                        if (pointsEarned > 0) {
+                            const loyaltyData = JSON.parse(localStorage.getItem("loyaltyPoints") || '{"totalPoints": 0, "history": []}');
+                            loyaltyData.totalPoints += pointsEarned;
+                            loyaltyData.history.push({
+                                date: new Date().toISOString().split('T')[0],
+                                orderId: data.orderId,
+                                orderTotal: total,
+                                pointsEarned: pointsEarned,
+                                type: "earned"
+                            });
+                            localStorage.setItem("loyaltyPoints", JSON.stringify(loyaltyData));
+                        }
+
+                        // Clear Cart
+                        localStorage.removeItem("cart");
+
+                        // Show Success
+                        let successMessage = `✅ Order Placed Successfully!\n\nOrder ID: #${data.orderId}\nThank you, ${name}.\nYour total paid: $${total.toFixed(2)}`;
+                        if (pointsEarned > 0) {
+                            const loyaltyData = JSON.parse(localStorage.getItem("loyaltyPoints") || '{"totalPoints": 0}');
+                            successMessage += `\n\n🎁 You earned ${pointsEarned} loyalty points!\n💎 Total Points: ${loyaltyData.totalPoints}`;
+                            if (loyaltyData.totalPoints >= 80) {
+                                successMessage += `\n\n🎉 You can redeem a FREE meal!`;
+                            }
+                        }
+                        if (notes) {
+                            successMessage += `\n\nNotes: ${notes}`;
+                        }
+                        alert(successMessage);
+
+                        // Redirect to Orders page
+                        window.location.href = "orders.html";
+                    } else {
+                        alert("❌ Failed to place order: " + data.message);
+
+                        // Re-enable button
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = 'Place Order';
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("Error placing order:", err);
+                    alert("❌ Failed to place order: " + err.message);
+
+                    // Re-enable button
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Place Order';
+                    }
                 });
-
-                // Save updated loyalty data
-                localStorage.setItem("loyaltyPoints", JSON.stringify(loyaltyData));
-            }
-            
-            // Clear Cart
-            localStorage.removeItem("cart");
-            
-            // Show Success
-            let successMessage = `✅ Order Placed Successfully!\n\nThank you, ${name}.\nYour total paid: $${total.toFixed(2)}`;
-            if (pointsEarned > 0) {
-                const loyaltyData = JSON.parse(localStorage.getItem("loyaltyPoints") || '{"totalPoints": 0}');
-                successMessage += `\n\n🎁 You earned ${pointsEarned} loyalty points!\n💎 Total Points: ${loyaltyData.totalPoints}`;
-                if (loyaltyData.totalPoints >= 80) {
-                    successMessage += `\n\n🎉 You can redeem a FREE meal!`;
-                }
-            }
-            if (notes) {
-                successMessage += `\n\nNotes: ${notes}`;
-            }
-            alert(successMessage);
-            
-            // Redirect Home
-            window.location.href = "index.html";
         });
     }
 });

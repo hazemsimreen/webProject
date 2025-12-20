@@ -309,3 +309,142 @@ a {
 #doneReview{
     margin-top: 15px;
 }
+
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 10px;
+    background-color: white;
+    min-width: 280px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    z-index: 9999;
+}
+
+.user-dropdown-content.show {
+    display: block;
+}
+
+.user-dropdown-header {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    background: linear-gradient(135deg, #ffbe33 0%, #e69c00 100%);
+    border-radius: 8px 8px 0 0;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #e69c00;
+    margin-bottom: 10px;
+}
+
+.user-info h6 {
+    margin: 0;
+    color: white;
+    font-weight: 600;
+}
+
+.user-info p {
+    margin: 5px 0 0 0;
+    color: rgba(255,255,255,0.9);
+    font-size: 14px;
+}
+
+.dropdown-menu-item {
+    padding: 12px 15px;
+    display: block;
+    color: #333;
+    text-decoration: none;
+    transition: background 0.2s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdown-menu-item:hover {
+    background-color: #f5f5f5;
+}
+.dropdown-menu-item i {
+    width: 20px;
+    margin-right: 10px;
+    color: #ffbe33;
+}
+
+
+
+.logout-btn {
+    color: #dc3545 !important;
+    border-top: 1px solid #eee;
+}
+
+.logout-btn i {
+    color: #dc3545 !important;
+}
+.guest-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.guest-avatar {
+    width: 70px;
+    height: 70px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: #e69c00;
+    margin-bottom: 10px;
+}
+
+.guest-actions {
+    padding: 15px;
+}
+
+.guest-actions .btn {
+    width: 100%;
+    margin-bottom: 10px;
+    background-color: #ffbe33 !important;
+    border-color: #ffbe33 !important;
+    color: white !important;
+    transition: all 0.2s ease !important;
+}
+
+.guest-actions .btn:hover {
+    background-color: #e69c00 !important;
+    border-color: #e69c00 !important;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 190, 51, 0.3) !important;
+}
+.user-dropdown-content {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: 0.25s ease;
+}
+
+.user-dropdown-content.show {
+    opacity: 1;
+    transform: translateY(0);
+}

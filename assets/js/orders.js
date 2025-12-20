@@ -6,10 +6,29 @@ document.addEventListener("DOMContentLoaded", function() {
     const ordersContainer = document.getElementById("ordersContainer");
     const emptyState = document.getElementById("emptyState");
 
-    // Load orders from localStorage
+    // Load orders from database
     function loadOrders() {
-        const orders = JSON.parse(localStorage.getItem("restaurantOrders") || "[]");
-        return orders.sort((a, b) => b.id - a.id); // Most recent first
+        fetch(`php/Orders.php?getOrders=1`)
+            .then(res => {
+                if (res.status === 401) {
+                    // Not logged in
+                    alert("Please login to view your orders!");
+                    window.location.href = "login.html";
+                    return null;
+                }
+                if (!res.ok) throw new Error('Failed to fetch orders');
+                return res.json();
+            })
+            .then(orders => {
+                if (!orders) return; // Handle 401 redirect case
+                renderOrders(orders);
+            })
+            .catch(err => {
+                console.error("❌ Failed to load orders:", err);
+                if (ordersContainer) {
+                    ordersContainer.innerHTML = '<p class="text-danger text-center">Failed to load orders. Please try again later.</p>';
+                }
+            });
     }
 
     // Show notification
@@ -18,10 +37,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Re-order functionality
-    function reorder(orderId) {
-        const orders = loadOrders();
+    function reorder(orderId, orders) {
         const order = orders.find(o => o.id === orderId);
-        
+
         if (!order) {
             showNotification("❌ Order not found!");
             return;
@@ -32,8 +50,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Add all items from the order to cart
         order.items.forEach(item => {
-            const existingItem = cart.find(cartItem => cartItem.id === item.id);
-            
+            const existingItem = cart.find(cartItem => cartItem.id == item.id);
+
             if (existingItem) {
                 existingItem.quantity += item.quantity;
             } else {
@@ -43,9 +61,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Save updated cart
         localStorage.setItem("cart", JSON.stringify(cart));
-        
+
         showNotification(`✅ ${order.items.length} item(s) added to cart!`);
-        
+
         // Optionally redirect to cart
         const goToCart = confirm("Go to cart now?");
         if (goToCart) {
@@ -54,9 +72,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Render orders
-    function renderOrders() {
-        const orders = loadOrders();
-
+    function renderOrders(orders) {
         if (orders.length === 0) {
             ordersContainer.style.display = "none";
             emptyState.style.display = "block";
@@ -86,7 +102,10 @@ document.addEventListener("DOMContentLoaded", function() {
                         <small>${orderDate}</small>
                     </div>
                     <div class="text-end">
-                        <h4 class="mb-0 text-warning">$${order.total.toFixed(2)}</h4>
+                        <span class="badge bg-${order.status === 'completed' ? 'success' : order.status === 'pending' ? 'warning' : 'secondary'} me-2">
+                            ${order.status.toUpperCase()}
+                        </span>
+                        <h4 class="mb-0 text-warning d-inline">$${order.total.toFixed(2)}</h4>
                     </div>
                 </div>
                 <div class="card-body">
@@ -121,13 +140,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
             ordersContainer.appendChild(orderCard);
         });
+
+        // Store orders for reorder function
+        window.currentOrders = orders;
     }
 
     // Expose reorder function globally
-    window.reorderFunction = reorder;
+    window.reorderFunction = function(orderId) {
+        reorder(orderId, window.currentOrders || []);
+    };
 
-    // Initial render
-    renderOrders();
+    // Initial load
+    loadOrders();
 
     console.log("✅ Orders system ready!");
 });

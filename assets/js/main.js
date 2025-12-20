@@ -1,19 +1,25 @@
 console.log("🚀 main.js loaded!");
+let allMeals = [];
+let filtersAttached = false;
+
 
 document.addEventListener("DOMContentLoaded", function () {
     console.log("✅ DOM Ready!");
 
-    let allMeals = [];
-    let filtersAttached = false;
+
+    async function isUserLoggedIn() {
+        try {
+            const response = await fetch('php/check_session.php');
+            const data = await response.json();
+            return data.loggedIn;
+        } catch (error) {
+            console.error('Error checking login status:', error);
+            return false;
+        }
+    }
 
     // ============= LOAD MEALS FROM DATABASE =============
     function loadMealsFromDB() {
-        // Skip rendering on index.html - looping-slider.js handles it
-        if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
-            console.log('📍 On index page - looping-slider.js will handle meal rendering');
-            return;
-        }
-
         // Fetch meals from database
         fetch("php/Meals.php?getMeals=1")
             .then(res => {
@@ -28,38 +34,45 @@ document.addEventListener("DOMContentLoaded", function () {
                     const menuContainer = document.querySelector(".menuContnts .row");
                     if (menuContainer) {
                         menuContainer.innerHTML = `
-                        <div class="col-12 text-center text-white py-5">
-                            <i class="fa-solid fa-utensils fa-3x mb-3"></i>
-                            <h3>No meals available</h3>
-                            <p>Check back soon for delicious meals!</p>
-                        </div>
-                    `;
+                    <div class="col-12 text-center text-white py-5">
+                        <i class="fa-solid fa-utensils fa-3x mb-3"></i>
+                        <h3>No meals available</h3>
+                        <p>Check back soon for delicious meals!</p>
+                    </div>
+                `;
                     }
                     return;
                 }
 
-                allMeals = data; // Store meals globally
+                allMeals = data;
+                console.log(`📦 Loaded ${data.length} meals into allMeals`);
+
+                // Skip rendering on index.html - looping-slider.js handles it
+                if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
+                    console.log('📍 On index page - looping-slider.js will handle rendering');
+                    return;
+                }
+
+
                 renderMeals(data);
 
-                // Only attach filters once
+
                 if (!filtersAttached) {
                     attachFilterListeners();
                     filtersAttached = true;
                 }
-
-                console.log(`📦 Loaded ${data.length} meals from database`);
             })
             .catch(err => {
                 console.error("❌ Failed to load meals:", err);
                 const menuContainer = document.querySelector(".menuContnts .row");
                 if (menuContainer) {
                     menuContainer.innerHTML = `
-                    <div class="col-12 text-center text-white py-5">
-                        <i class="fa-solid fa-exclamation-triangle fa-3x mb-3"></i>
-                        <h3>Failed to load meals</h3>
-                        <p>Please try again later.</p>
-                    </div>
-                `;
+                <div class="col-12 text-center text-white py-5">
+                    <i class="fa-solid fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h3>Failed to load meals</h3>
+                    <p>Please try again later.</p>
+                </div>
+            `;
                 }
             });
     }
@@ -339,70 +352,72 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // ============= EVENT DELEGATION FOR CART BUTTONS =============
-  // This ensures clicks work for BOTH static and dynamically added items
-  document.addEventListener("click", function(e) {
-    const btn = e.target.closest(".add-to-cart-btn");
-    
-    if (btn) {
-        e.preventDefault();
-        console.log(`🖱️ Cart button clicked`);
 
-        const menuItem = btn.closest(".menu-item");
-        if (!menuItem) {
-          console.error("❌ Menu item not found!");
-          return;
+    // ============= EVENT DELEGATION FOR CART BUTTONS =============
+    document.addEventListener("click", async function(e) {
+        const btn = e.target.closest(".add-to-cart-btn");
+
+        if (btn) {
+            e.preventDefault();
+            console.log(`🖱️ Cart button clicked`);
+
+            // Check if user is logged in
+            const loggedIn = await isUserLoggedIn();
+            if (!loggedIn) {
+                showNotification("⚠️ Please login to add items to cart!", "error");
+                setTimeout(() => {
+                    if (confirm("You need to login first. Go to login page?")) {
+                        window.location.href = "login.html";
+                    }
+                }, 500);
+                return;
+            }
+
+            const menuItem = btn.closest(".menu-item");
+            if (!menuItem) {
+                console.error("❌ Menu item not found!");
+                return;
+            }
+
+            const mealId = menuItem.dataset.id;
+
+            // Get meal data from allMeals array
+            let mealData = null;
+            if (allMeals && allMeals.length > 0) {
+                mealData = allMeals.find((meal) => parseInt(meal.id) === parseInt(mealId));
+            }
+
+            if (!mealData) {
+                console.error("❌ Meal not found in allMeals array!");
+                showNotification("Error: Could not find meal data. Please refresh the page.", "error");
+                return;
+            }
+
+            // Use meal data from database
+            const itemData = {
+                id: mealData.id,
+                name: mealData.name,
+                price: parseFloat(mealData.price),
+                image: mealData.image,
+                description: mealData.description,
+                category: mealData.category,
+            };
+
+            console.log("📦 Adding item to cart:", itemData);
+            addToCart(itemData);
+
+            // Visual feedback
+            btn.style.transform = "scale(0.9)";
+            setTimeout(() => {
+                btn.style.transform = "scale(1)";
+            }, 150);
         }
-
-        const card = menuItem.querySelector(".card");
-        const mealId = menuItem.dataset.id;
-
-        // Get meal data from localStorage to ensure we have the correct image
-        const savedMeals = localStorage.getItem("restaurantMeals");
-        let mealData = null;
-
-        if (savedMeals) {
-          const meals = JSON.parse(savedMeals);
-          mealData = meals.find((meal) => meal.id == mealId);
-        }
-
-        // Use meal data from localStorage if available, otherwise get from DOM
-        const itemData = {
-          id: mealId,
-          name: mealData
-            ? mealData.name
-            : card.querySelector(".card-title").textContent.trim(),
-          price: mealData
-            ? mealData.price
-            : parseFloat(
-                card
-                  .querySelector(".cardFooter h6")
-                  .textContent.replace("$", "")
-                  .trim()
-              ),
-          image: mealData ? null : card.querySelector(".card-img-top").src,
-          description: mealData
-            ? mealData.description
-            : card.querySelector(".card-text").textContent.trim(),
-          category: mealData ? mealData.category : menuItem.dataset.category,
-        };
-
-        console.log("📦 Adding item to cart:", itemData);
-        addToCart(itemData);
-
-        // Visual feedback
-        btn.style.transform = "scale(0.9)";
-        setTimeout(() => {
-          btn.style.transform = "scale(1)";
-        }, 150);
-    }
-  });
-
+    });
 
   // Initialize cart count
   updateCartCount();
 
-  // Load meals from localStorage
+
   loadMealsFromDB();
 
   // Add animations CSS
@@ -526,21 +541,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
         offerBtns.forEach(btn => {
             btn.addEventListener("click", async function() {
+                // Check if user is logged in FIRST
+                const loggedIn = await isUserLoggedIn();
+                if (!loggedIn) {
+                    showNotification("⚠️ Please login to order this offer!", "error");
+                    setTimeout(() => {
+                        if (confirm("You need to login first. Go to login page?")) {
+                            window.location.href = "login.html";
+                        }
+                    }, 500);
+                    return;
+                }
+
                 const mealIds = this.dataset.mealIds.split(',').map(Number);
                 const offerId = this.dataset.id;
                 const offerTitle = this.dataset.title;
                 const offerDiscountStr = this.dataset.discount;
 
+                // Get offer image from the card
+                const offerCard = this.closest('.card');
+                const offerImage = offerCard ? offerCard.querySelector('img')?.src : null;
+
                 // Fetch all meals to get details
                 try {
-                    const response = await fetch("php/Meals.php?getMeals=1");
-                    const allMeals = await response.json();
+                    let mealsData = allMeals;
+                    if (!mealsData || mealsData.length === 0) {
+                        const response = await fetch("php/Meals.php?getMeals=1");
+                        mealsData = await response.json();
+                    }
 
                     const includedMeals = [];
                     let originalTotalPrice = 0;
 
                     mealIds.forEach(id => {
-                        const meal = allMeals.find(m => parseInt(m.id) === id);
+                        const meal = mealsData.find(m => parseInt(m.id) === id);
                         if (meal) {
                             includedMeals.push(meal);
                             originalTotalPrice += parseFloat(meal.price);
@@ -548,7 +582,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
 
                     if (includedMeals.length === 0) {
-                        alert("Sorry, the meals in this offer are no longer available.");
+                        showNotification("Sorry, the meals in this offer are no longer available.", "error");
                         return;
                     }
 
@@ -567,6 +601,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         offerId: parseInt(offerId),
                         name: offerTitle,
                         price: parseFloat(finalPrice.toFixed(2)),
+                        image: offerImage,
                         description: `Includes: ${includedMeals.map(m => m.name).join(", ")}`,
                         category: "offer",
                         type: "offer",
@@ -586,7 +621,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }, 2000);
                 } catch (error) {
                     console.error("Error adding offer to cart:", error);
-                    alert("Failed to add offer to cart. Please try again.");
+                    showNotification("Failed to add offer to cart. Please try again.", "error");
                 }
             });
         });
@@ -745,6 +780,117 @@ function initBookingSystem()
             });
     });
 }
+
+// ============= USER DROPDOWN =============
+    (function() {
+        const dropdownBtn = document.getElementById('userDropdownBtn');
+        const dropdownMenu = document.getElementById('userDropdownMenu');
+
+        if (!dropdownBtn || !dropdownMenu) {
+            console.log("❌ User dropdown elements not found");
+            return;
+        }
+
+        console.log("✅ User dropdown initialized");
+
+        // Toggle dropdown on click
+        dropdownBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("🖱️ User icon clicked");
+            dropdownMenu.classList.toggle('show');
+
+            // Load content if opening
+            if (dropdownMenu.classList.contains('show')) {
+                loadUserDropdown();
+            }
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-dropdown')) {
+                dropdownMenu.classList.remove('show');
+            }
+        });
+
+        function loadUserDropdown() {
+            console.log("📡 Loading user dropdown...");
+
+            fetch('php/check_session.php')
+                .then(res => res.json())
+                .then(data => {
+                    console.log("📦 Session data:", data);
+
+                    if (data.loggedIn) {
+                        // Logged in view
+                        dropdownMenu.innerHTML = `
+                        <div class="user-dropdown-header">
+                            <div class="user-avatar">
+                                ${data.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="user-info">
+                                <h6>${data.username}</h6>
+                                <p>${data.email}</p>
+                            </div>
+                        </div>
+                        <a href="orders.html" class="dropdown-menu-item">
+                            <i class="fa-solid fa-receipt"></i>
+                            My Orders
+                        </a>
+                        <a href="loyalty.html" class="dropdown-menu-item">
+                            <i class="fa-solid fa-gift"></i>
+                            Rewards
+                        </a>
+                        ${data.role === 'admin' ? `
+                        <a href="admin.html" class="dropdown-menu-item">
+                            <i class="fa-solid fa-shield"></i>
+                            Admin Panel
+                        </a>
+                        ` : ''}
+                        <button class="dropdown-menu-item logout-btn" id="logoutBtn">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            Logout
+                        </button>
+                    `;
+
+                        // Attach logout listener
+                        const logoutBtn = document.getElementById('logoutBtn');
+                        if (logoutBtn) {
+                            logoutBtn.addEventListener('click', function() {
+                                if (confirm('Are you sure you want to logout?')) {
+                                    window.location.href = 'php/logout.php';
+                                }
+                            });
+                        }
+                    } else {
+                        // Guest view
+                        dropdownMenu.innerHTML = `
+                       <div class="guest-message">
+    <div class="guest-avatar">
+        <i class="fa-solid fa-user"></i>
+    </div>
+    <p>Sign in to access your account</p>
+</div>
+
+                        <div class="guest-actions">
+                            <a href="login.html" class="btn btn-primary">
+                                <i class="fa-solid fa-right-to-bracket me-2"></i>
+                                Login
+                            </a>
+                            <a href="SignUp.html" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-user-plus me-2"></i>
+                                Sign Up
+                            </a>
+                        </div>
+                    `;
+                    }
+                })
+                .catch(err => {
+                    console.error('❌ Error loading dropdown:', err);
+                    dropdownMenu.innerHTML = '<div style="padding:20px; color:#dc3545;">Error loading menu</div>';
+                });
+        }
+    })();
+
 
 initBookingSystem();
 
