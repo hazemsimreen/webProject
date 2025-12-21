@@ -17,15 +17,18 @@
     <div class="right-panel">
         <div class="login-box">
             <h2>Login</h2>
-            <p class="welcome">Welcome to the Meals Engineers’s login system.<br>
-               .</p>
+            <p class="welcome">Welcome to the Meals Engineers's login system.<br>
+                .</p>
 
-            <form   action="php/signIn.php"  method="post" id="loginForm">
+            <!-- Error Message Container -->
+            <div id="errorMessage" class="alert alert-error" style="display: none;"></div>
+
+            <form action="php/signIn.php" method="post" id="loginForm">
                 <label for="username">Username</label>
-                <input name="username" type="text" id="username" placeholder="Enter username">
+                <input name="username" type="text" id="username" placeholder="Enter username" required>
 
                 <label for="password">Password</label>
-                <input name="password" type="password" id="password" placeholder="***********">
+                <input name="password" type="password" id="password" placeholder="***********" required>
 
                 <div class="captcha">
 
@@ -44,17 +47,9 @@
                         <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg" alt="Facebook">
                         Login with Facebook
                     </button>
-
-
                 </div>
 
-
-
-
-
                 <a href="#" class="forgot">Forgotten Password?</a>
-
-
             </form>
         </div>
     </div>

@@ -178,3 +178,29 @@ input[type="password"] {
 .facebook-btn:hover {
     background-color: #4c70ba;
 }
+.alert {
+    padding: 12px 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    text-align: center;
+    animation: slideDown 0.3s ease-out;
+}
+
+.alert-error {
+    background-color: #ff4444;
+    color: white;
+    border-left: 4px solid #cc0000;
+    box-shadow: 0 2px 5px rgba(255, 68, 68, 0.3);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
